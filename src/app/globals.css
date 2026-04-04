@@ -127,4 +127,13 @@
   html {
     @apply font-sans;
   }
+}/* Fallback for field-sizing: content */
+.textarea-field-sizing {
+  /* Fallback fixed height when un-supported */
+  min-height: 4rem;
+}
+@supports (field-sizing: content) {
+  .textarea-field-sizing {
+    field-sizing: content;
+  }
 }

@@ -8,6 +8,7 @@ export function TopNav() {
         <Button variant="ghost" size="icon" className="md:hidden">
           <Menu className="w-5 h-5" />
           <span className="sr-only">Toggle mobile menu</span>
+          {/* TODO: Wire this Button to a toggleSidebar prop/context provided by DashboardLayout */}
         </Button>
         <span className="font-semibold md:hidden">HRMS Portal</span>
       </div>

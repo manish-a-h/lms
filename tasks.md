@@ -23,8 +23,8 @@ Current repo baseline:
 - [x] Define route structure in `src/app` for auth, dashboard, leave, profile, salary, and admin areas
 - [x] Decide shared layout strategy for authenticated pages using nested layouts
 - [x] Define where server components, client components, server actions, and route handlers will be used
-- [x] Create a data-access layer for Prisma queries and mutations
-- [x] Add shared domain types and validation schemas for form and API boundaries
+- [ ] Create a data-access layer (e.g., repository/query/mutation methods) for Prisma queries and mutations rather than relying only on the Prisma client singleton
+- [ ] Add validation schemas (use Zod or similar) for form and API boundaries and for shared domain types
 - [x] Define status enums and role enums once and reuse them across UI and database code
 
 ## 3. Design System and DRD Foundations

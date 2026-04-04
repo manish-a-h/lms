@@ -12,11 +12,24 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  employee
+  manager
+  hr_admin
+}
+
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+  cancelled
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  role      String   @default("employee")
+  role      Role     @default(employee)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -29,7 +42,7 @@ model LeaveRequest {
   startDate DateTime
   endDate   DateTime
   reason    String
-  status    String   @default("pending") // pending, approved, rejected
+  status    LeaveStatus @default(pending) // pending, approved, rejected, cancelled
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
