@@ -1,7 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Leave Management System — Full Prisma Schema
+// Learn more: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client"
@@ -10,7 +8,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
 
 enum Role {
   employee
@@ -25,26 +28,206 @@ enum LeaveStatus {
   cancelled
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      Role     @default(employee)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  leaveRequests LeaveRequest[]
+enum ApprovalAction {
+  approved
+  rejected
 }
 
-model LeaveRequest {
-  id        String   @id @default(cuid())
-  userId    String
-  startDate DateTime
-  endDate   DateTime
-  reason    String
-  status    LeaveStatus @default(pending) // pending, approved, rejected, cancelled
+enum DayTime {
+  full_day
+  forenoon
+  afternoon
+}
+
+enum SalaryComponentType {
+  earning
+  deduction
+}
+
+// ─────────────────────────────────────────────
+// User / Profile
+// ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  nitteEmail   String?  @unique
+  passwordHash String
+  name         String
+  role         Role     @default(employee)
+
+  // Profile fields
+  department   String?
+  designation  String?
+  institution  String?
+  panNo        String?
+  pfUan        String?
+  bankAcctNo   String?
+  contactNo    String?
+  dob          DateTime?
+  dateOfJoin   DateTime?
+  isActive     Boolean  @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  // Relations
+  leaveRequests    LeaveRequest[]
+  leaveBalances    LeaveBalance[]
+  approvalLogs     ApprovalLog[]  @relation("ManagerLogs")
+  salaryComponents SalaryComponent[]
+  salarySlips      SalarySlip[]
+  refreshTokens    RefreshToken[]
+}
+
+// ─────────────────────────────────────────────
+// Leave Types
+// ─────────────────────────────────────────────
+
+model LeaveType {
+  id              String  @id @default(cuid())
+  name            String  @unique
+  maxDaysPerYear  Int
+  carryForward    Boolean @default(false)
+  description     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  leaveRequests LeaveRequest[]
+  leaveBalances LeaveBalance[]
+}
+
+// ─────────────────────────────────────────────
+// Leave Requests
+// ─────────────────────────────────────────────
+
+model LeaveRequest {
+  id           String      @id @default(cuid())
+  userId       String
+  leaveTypeId  String
+  startDate    DateTime
+  endDate      DateTime
+  dayTime      DayTime     @default(full_day)
+  noOfDays     Float
+  reason       String
+  dutyIncharge String?
+  status       LeaveStatus @default(pending)
+  appliedOn    DateTime    @default(now())
+  comments     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType    LeaveType     @relation(fields: [leaveTypeId], references: [id])
+  approvalLogs ApprovalLog[]
+}
+
+// ─────────────────────────────────────────────
+// Leave Balances
+// ─────────────────────────────────────────────
+
+model LeaveBalance {
+  id          String @id @default(cuid())
+  userId      String
+  leaveTypeId String
+  year        Int
+  totalDays   Float
+  usedDays    Float  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([userId, leaveTypeId, year])
+}
+
+// ─────────────────────────────────────────────
+// Approval Logs
+// ─────────────────────────────────────────────
+
+model ApprovalLog {
+  id        String         @id @default(cuid())
+  requestId String
+  managerId String
+  action    ApprovalAction
+  comment   String?
+  actionDate DateTime      @default(now())
+
+  // Relations
+  request LeaveRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  manager User         @relation("ManagerLogs", fields: [managerId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// Salary
+// ─────────────────────────────────────────────
+
+model SalaryComponent {
+  id            String              @id @default(cuid())
+  userId        String
+  componentName String
+  amount        Float
+  type          SalaryComponentType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SalarySlip {
+  id          String   @id @default(cuid())
+  userId      String
+  month       Int      // 1–12
+  year        Int
+  grossSalary Float
+  netSalary   Float
+  generatedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, year])
+}
+
+// ─────────────────────────────────────────────
+// Holidays
+// ─────────────────────────────────────────────
+
+model Holiday {
+  id         String   @id @default(cuid())
+  name       String
+  date       DateTime
+  isOptional Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// Refresh Tokens
+// ─────────────────────────────────────────────
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
