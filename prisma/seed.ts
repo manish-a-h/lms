@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
@@ -282,6 +283,96 @@ async function main() {
         data: { usedDays: 2 },
       });
     }
+
+    // ─── Salary Components and Slips for Demo Users ─────────────────────────
+    const salaryProfiles: Record<string, { earnings: Record<string, number>; deductions: Record<string, number> }> = {
+      employee: {
+        earnings: { "Basic Pay": 35000, "House Rent Allowance": 14000, "Dearness Allowance": 7000, "Special Allowance": 5000 },
+        deductions: { "Provident Fund": 4200, "Professional Tax": 200, "Income Tax": 3500 },
+      },
+      manager: {
+        earnings: { "Basic Pay": 55000, "House Rent Allowance": 22000, "Dearness Allowance": 11000, "Special Allowance": 8000 },
+        deductions: { "Provident Fund": 6600, "Professional Tax": 200, "Income Tax": 7200 },
+      },
+    };
+
+    for (const user of seededUsers.filter((entry) => entry.role !== "hr_admin")) {
+      const profile = salaryProfiles[user.role] ?? salaryProfiles.employee;
+
+      // Clear existing salary data for idempotent seeding
+      await prisma.salaryComponent.deleteMany({ where: { userId: user.id } });
+
+      // Seed salary components
+      for (const [name, amount] of Object.entries(profile.earnings)) {
+        await prisma.salaryComponent.create({
+          data: { userId: user.id, componentName: name, amount, type: "earning" },
+        });
+      }
+      for (const [name, amount] of Object.entries(profile.deductions)) {
+        await prisma.salaryComponent.create({
+          data: { userId: user.id, componentName: name, amount, type: "deduction" },
+        });
+      }
+
+      // Seed salary slips for past 6 months
+      const totalEarnings = Object.values(profile.earnings).reduce((s, v) => s + v, 0);
+      const totalDeductions = Object.values(profile.deductions).reduce((s, v) => s + v, 0);
+      const netSalary = totalEarnings - totalDeductions;
+
+      // Delete existing demo slips for idempotent seeding
+      await prisma.salarySlip.deleteMany({ where: { userId: user.id } });
+
+      const now = new Date();
+      for (let i = 1; i <= 6; i++) {
+        const slipDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const slipMonth = slipDate.getMonth() + 1;
+        const slipYear = slipDate.getFullYear();
+
+        const slip = await prisma.salarySlip.create({
+          data: {
+            userId: user.id,
+            month: slipMonth,
+            year: slipYear,
+            grossSalary: totalEarnings,
+            netSalary: netSalary,
+            generatedAt: new Date(slipYear, slipMonth, 1),
+          },
+        });
+
+        // Create line items for each slip
+        const lineItemsData = [
+          ...Object.entries(profile.earnings).map(([name, amount]) => ({
+            salarySlipId: slip.id,
+            componentName: name,
+            amount,
+            type: "earning" as const,
+          })),
+          ...Object.entries(profile.deductions).map(([name, amount]) => ({
+            salarySlipId: slip.id,
+            componentName: name,
+            amount,
+            type: "deduction" as const,
+          })),
+        ];
+
+        await prisma.salarySlipLineItem.createMany({ data: lineItemsData });
+      }
+    }
+
+    // Update profile fields on demo users
+    const profileUpdates = [
+      { email: "employee@hrms.local", panNo: "ABCDE1234F", contactNo: "9876543210", pfUan: "100012345678", bankAcctNo: "1234567890", institution: "NITTE University", dob: new Date("1995-06-15"), dateOfJoin: new Date("2022-03-01") },
+      { email: "employee2@hrms.local", panNo: "FGHIJ5678K", contactNo: "9876543211", pfUan: "100012345679", bankAcctNo: "1234567891", institution: "NITTE University", dob: new Date("1993-11-22"), dateOfJoin: new Date("2021-07-15") },
+      { email: "manager@hrms.local", panNo: "KLMNO9012P", contactNo: "9876543212", pfUan: "100012345680", bankAcctNo: "1234567892", institution: "NITTE University", dob: new Date("1988-03-08"), dateOfJoin: new Date("2018-01-10") },
+      { email: "admin@hrms.local", panNo: "PQRST3456U", contactNo: "9876543213", institution: "NITTE University", dob: new Date("1985-09-20"), dateOfJoin: new Date("2015-06-01") },
+    ];
+
+    for (const update of profileUpdates) {
+      const { email, ...data } = update;
+      await prisma.user.update({ where: { email }, data }).catch(() => {});
+    }
+
+    console.log("✅ Seeded salary components, slips, and profile data for demo users");
 
     console.log(`✅ Seeded demo users for roles: ${seededUsers.map((user) => user.role).join(", ")}`);
     console.log("ℹ️  Use DEMO_USER_PASSWORD (or ADMIN_PASSWORD) to sign in to all seeded accounts.");

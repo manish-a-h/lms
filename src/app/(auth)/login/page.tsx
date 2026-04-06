@@ -127,6 +127,7 @@ function LoginPageContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                suppressHydrationWarning
                 className="h-11 w-full rounded-xl border border-transparent bg-[#e0e3e5] px-3 text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#004ac6]/20"
               />
             </div>
@@ -144,12 +145,14 @@ function LoginPageContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  suppressHydrationWarning
                   className="h-11 w-full rounded-xl border border-transparent bg-[#e0e3e5] px-3 pr-10 text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#004ac6]/20"
                 />
                 <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((v) => !v)}
+                  suppressHydrationWarning
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -169,6 +172,7 @@ function LoginPageContent() {
               id="sign-in-button"
               type="submit"
               disabled={loading}
+              suppressHydrationWarning
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[linear-gradient(135deg,#004ac6,#2b6ff0)] text-sm font-semibold text-white shadow-[0_18px_30px_-18px_rgba(0,74,198,0.55)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_34px_-18px_rgba(0,74,198,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
