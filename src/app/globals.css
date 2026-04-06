@@ -191,3 +191,26 @@
     field-sizing: content;
   }
 }
+
+/* ─── Print Styles ─────────────────────────────────────────────────────────── */
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  .print\:hidden,
+  nav,
+  aside,
+  header,
+  [data-slot="toaster"] {
+    display: none !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

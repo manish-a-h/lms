@@ -61,6 +61,7 @@ model User {
   role         Role     @default(employee)
 
   // Profile fields
+  avatarUrl    String?
   department   String?
   designation  String?
   institution  String?
@@ -234,9 +235,23 @@ model SalarySlip {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lineItems SalarySlipLineItem[]
 
   @@unique([userId, month, year])
+}
+
+model SalarySlipLineItem {
+  id              String              @id @default(cuid())
+  salarySlipId    String
+  componentName   String
+  amount          Float
+  type            SalaryComponentType
+
+  // Relations
+  salarySlip SalarySlip @relation(fields: [salarySlipId], references: [id], onDelete: Cascade)
+
+  @@index([salarySlipId])
 }
 
 // ─────────────────────────────────────────────
