@@ -1,20 +1,31 @@
-import { Sidebar } from "@/components/layout/sidebar";
-import { TopNav } from "@/components/layout/top-nav";
+import { cookies } from "next/headers";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { verifyAccessToken } from "@/lib/auth";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+
+  let userName = "User";
+  let userRole = "employee";
+
+  if (token) {
+    try {
+      const payload = await verifyAccessToken(token);
+      userName = payload.name ?? "User";
+      userRole = payload.role ?? "employee";
+    } catch {
+      // Middleware handles redirecting invalid sessions.
+    }
+  }
+
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden flex-row">
-      <Sidebar />
-      <div className="flex flex-col flex-1 h-full w-full">
-        <TopNav />
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardShell userName={userName} userRole={userRole}>
+      {children}
+    </DashboardShell>
   );
 }

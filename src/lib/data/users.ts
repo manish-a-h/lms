@@ -1,3 +1,4 @@
+import { Role } from "@/generated/prisma/client";
 import { db } from "../db";
 
 export async function getUserByEmail(email: string) {
@@ -46,12 +47,46 @@ export async function updateUserPassword(id: string, passwordHash: string) {
   });
 }
 
+export async function createUser(input: {
+  name: string;
+  email: string;
+  passwordHash: string;
+  role?: Role;
+  department?: string;
+  designation?: string;
+}) {
+  return db.user.create({
+    data: {
+      name: input.name.trim(),
+      email: input.email.trim().toLowerCase(),
+      passwordHash: input.passwordHash,
+      role: input.role ?? Role.employee,
+      department: input.department?.trim() || null,
+      designation: input.designation?.trim() || null,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      isActive: true,
+      department: true,
+      designation: true,
+    },
+  });
+}
+
 export async function getAllUsers(page = 1, pageSize = 10) {
-  const skip = (page - 1) * pageSize;
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+  const safePageSize =
+    Number.isInteger(pageSize) && pageSize > 0 ? Math.min(pageSize, 100) : 10;
+  const skip = (safePage - 1) * safePageSize;
+
   const [users, total] = await Promise.all([
     db.user.findMany({
       skip,
-      take: pageSize,
+      take: safePageSize,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -66,5 +101,6 @@ export async function getAllUsers(page = 1, pageSize = 10) {
     }),
     db.user.count(),
   ]);
-  return { users, total, page, pageSize };
+
+  return { users, total, page: safePage, pageSize: safePageSize };
 }

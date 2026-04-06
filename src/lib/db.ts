@@ -1,10 +1,51 @@
+import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../generated/prisma/client"
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  prismaAdapter: PrismaPg | undefined
+  prismaConnectionString: string | undefined
 }
 
-// @ts-ignore Prisma 7 requires 1 arg but works with 0 at runtime
-export const db = globalForPrisma.prisma ?? new PrismaClient()
+let prismaClient: PrismaClient | undefined
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL
+
+  if (!connectionString) {
+    throw new Error("Missing DATABASE_URL")
+  }
+
+  const adapter =
+    globalForPrisma.prismaAdapter &&
+      globalForPrisma.prismaConnectionString === connectionString
+      ? globalForPrisma.prismaAdapter
+      : new PrismaPg({ connectionString })
+
+  const client = globalForPrisma.prisma ?? new PrismaClient({ adapter })
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client
+    globalForPrisma.prismaAdapter = adapter
+    globalForPrisma.prismaConnectionString = connectionString
+  }
+
+  return client
+}
+
+function getDbClient() {
+  if (!prismaClient) {
+    prismaClient = globalForPrisma.prisma ?? createPrismaClient()
+  }
+
+  return prismaClient
+}
+
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, property, receiver) {
+    const client = getDbClient()
+    const value = Reflect.get(client as object, property, receiver)
+
+    return typeof value === "function" ? value.bind(client) : value
+  },
+})

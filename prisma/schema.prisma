@@ -8,7 +8,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ─────────────────────────────────────────────
@@ -44,6 +43,11 @@ enum SalaryComponentType {
   deduction
 }
 
+enum TokenPurpose {
+  session
+  reset
+}
+
 // ─────────────────────────────────────────────
 // User / Profile
 // ─────────────────────────────────────────────
@@ -72,12 +76,15 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  leaveRequests    LeaveRequest[]
-  leaveBalances    LeaveBalance[]
-  approvalLogs     ApprovalLog[]  @relation("ManagerLogs")
-  salaryComponents SalaryComponent[]
-  salarySlips      SalarySlip[]
-  refreshTokens    RefreshToken[]
+  leaveRequests       LeaveRequest[]
+  leaveBalances       LeaveBalance[]
+  approvalLogs        ApprovalLog[]    @relation("ManagerLogs")
+  managerAssignments  TeamAssignment[] @relation("ManagerAssignments")
+  employeeAssignments TeamAssignment[] @relation("EmployeeAssignments")
+  activityLogs        ActivityLog[]    @relation("ActorActivityLogs")
+  salaryComponents    SalaryComponent[]
+  salarySlips         SalarySlip[]
+  refreshTokens       RefreshToken[]
 }
 
 // ─────────────────────────────────────────────
@@ -122,7 +129,7 @@ model LeaveRequest {
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveType    LeaveType     @relation(fields: [leaveTypeId], references: [id])
+  leaveType    LeaveType     @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
   approvalLogs ApprovalLog[]
 }
 
@@ -143,7 +150,7 @@ model LeaveBalance {
 
   // Relations
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
 
   @@unique([userId, leaveTypeId, year])
 }
@@ -153,16 +160,47 @@ model LeaveBalance {
 // ─────────────────────────────────────────────
 
 model ApprovalLog {
-  id        String         @id @default(cuid())
-  requestId String
-  managerId String
-  action    ApprovalAction
-  comment   String?
-  actionDate DateTime      @default(now())
+  id         String         @id @default(cuid())
+  requestId  String
+  managerId  String?
+  action     ApprovalAction
+  comment    String?
+  actionDate DateTime       @default(now())
 
   // Relations
   request LeaveRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  manager User         @relation("ManagerLogs", fields: [managerId], references: [id])
+  manager User?        @relation("ManagerLogs", fields: [managerId], references: [id], onDelete: SetNull)
+}
+
+model TeamAssignment {
+  id         String   @id @default(cuid())
+  managerId  String
+  employeeId String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  manager  User @relation("ManagerAssignments", fields: [managerId], references: [id], onDelete: Cascade)
+  employee User @relation("EmployeeAssignments", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([managerId, employeeId])
+  @@index([employeeId, active])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  message    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("ActorActivityLogs", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, createdAt])
 }
 
 // ─────────────────────────────────────────────
@@ -220,14 +258,17 @@ model Holiday {
 // ─────────────────────────────────────────────
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String       @unique
+  purpose   TokenPurpose @default(session)
   expiresAt DateTime
-  revoked   Boolean  @default(false)
+  revoked   Boolean      @default(false)
 
   createdAt DateTime @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, revoked, expiresAt])
 }

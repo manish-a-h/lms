@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyRefreshToken, signAccessToken, hashToken, verifyTokenHash } from "@/lib/auth";
-import { accessTokenCookieOptions } from "@/lib/session";
+import { TokenPurpose } from "@/generated/prisma/client";
+import { signAccessToken, verifyRefreshToken, verifyTokenHash } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { accessTokenCookieOptions, refreshTokenCookieOptions } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No refresh token" }, { status: 401 });
     }
 
-    // Verify JWT
     let payload;
     try {
       payload = await verifyRefreshToken(refreshToken);
@@ -19,33 +19,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid refresh token" }, { status: 401 });
     }
 
-    // Find matching, non-revoked token in DB
-    const storedTokens = await db.refreshToken.findMany({
+    const storedToken = await db.refreshToken.findFirst({
       where: {
+        id: payload.jti,
         userId: payload.sub,
+        purpose: TokenPurpose.session,
         revoked: false,
         expiresAt: { gt: new Date() },
       },
+      select: {
+        id: true,
+        tokenHash: true,
+      },
     });
 
-    const matched = await Promise.all(
-      storedTokens.map((t) => verifyTokenHash(refreshToken, t.tokenHash).then((ok) => (ok ? t : null)))
-    ).then((results) => results.find(Boolean));
-
-    if (!matched) {
+    if (!storedToken) {
       return NextResponse.json({ error: "Refresh token revoked or not found" }, { status: 401 });
     }
 
-    // Issue new access token
+    const isMatch = await verifyTokenHash(refreshToken, storedToken.tokenHash);
+    if (!isMatch) {
+      return NextResponse.json({ error: "Refresh token revoked or not found" }, { status: 401 });
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
+
+    if (!user.isActive) {
+      return NextResponse.json({ error: "User account is inactive" }, { status: 403 });
+    }
+
     const newAccessToken = await signAccessToken({
-      sub: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      name: payload.name,
+      sub: user.id,
+      jti: storedToken.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
     });
 
     const response = NextResponse.json({ ok: true });
     response.cookies.set("access_token", newAccessToken, accessTokenCookieOptions());
+    response.cookies.set("refresh_token", refreshToken, refreshTokenCookieOptions());
     return response;
   } catch (error) {
     console.error("[REFRESH]", error);

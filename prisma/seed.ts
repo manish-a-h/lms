@@ -1,7 +1,16 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("Missing DATABASE_URL");
+}
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString }),
+});
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -43,7 +52,11 @@ async function main() {
   for (const lt of leaveTypes) {
     await prisma.leaveType.upsert({
       where: { name: lt.name },
-      update: {},
+      update: {
+        maxDaysPerYear: lt.maxDaysPerYear,
+        carryForward: lt.carryForward,
+        description: lt.description,
+      },
       create: lt,
     });
   }
@@ -75,26 +88,203 @@ async function main() {
   await prisma.holiday.createMany({ data: holidays });
   console.log(`✅ Seeded ${holidays.length} public holidays for 2026`);
 
-  // ─── Default HR Admin Account ─────────────────────────────────────────────
-  const adminEmail = "admin@hrms.local";
-  const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+  // ─── Optional demo users for every role (development/explicit opt-in) ─────
+  const shouldSeedDemoUsers =
+    process.env.NODE_ENV === "development" ||
+    process.env.SEED_ADMIN === "true" ||
+    process.env.SEED_DEMO_USERS === "true";
+  const demoPassword = process.env.DEMO_USER_PASSWORD ?? process.env.ADMIN_PASSWORD;
 
-  if (!existing) {
-    const passwordHash = await bcrypt.hash("Admin@1234", 12);
-    await prisma.user.create({
-      data: {
-        email: adminEmail,
+  if (!shouldSeedDemoUsers) {
+    console.log("ℹ️  Skipping demo users outside development (set SEED_DEMO_USERS=true to enable).");
+  } else if (!demoPassword) {
+    console.log("ℹ️  Skipping demo users because DEMO_USER_PASSWORD or ADMIN_PASSWORD is not set.");
+  } else {
+    const passwordHash = await bcrypt.hash(demoPassword, 12);
+    const currentYear = new Date().getFullYear();
+    const persistedLeaveTypes = await prisma.leaveType.findMany({ orderBy: { name: "asc" } });
+
+    const demoUsers = [
+      {
+        email: "admin@hrms.local",
         name: "HR Admin",
-        passwordHash,
-        role: "hr_admin",
+        role: "hr_admin" as const,
         department: "Human Resources",
         designation: "HR Administrator",
-        isActive: true,
       },
-    });
-    console.log(`✅ Created default HR Admin — email: ${adminEmail}  password: Admin@1234`);
-  } else {
-    console.log("ℹ️  HR Admin already exists — skipping");
+      {
+        email: "manager@hrms.local",
+        name: "Maya Manager",
+        role: "manager" as const,
+        department: "Operations",
+        designation: "Team Manager",
+      },
+      {
+        email: "employee@hrms.local",
+        name: "Esha Employee",
+        role: "employee" as const,
+        department: "Engineering",
+        designation: "Software Engineer",
+      },
+      {
+        email: "employee2@hrms.local",
+        name: "Arjun Employee",
+        role: "employee" as const,
+        department: "Engineering",
+        designation: "QA Analyst",
+      },
+    ];
+
+    const seededUsers = [] as Array<{ id: string; email: string; role: string; name: string }>;
+
+    for (const demoUser of demoUsers) {
+      const user = await prisma.user.upsert({
+        where: { email: demoUser.email },
+        update: {
+          name: demoUser.name,
+          passwordHash,
+          role: demoUser.role,
+          department: demoUser.department,
+          designation: demoUser.designation,
+          isActive: true,
+        },
+        create: {
+          email: demoUser.email,
+          name: demoUser.name,
+          passwordHash,
+          role: demoUser.role,
+          department: demoUser.department,
+          designation: demoUser.designation,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          name: true,
+        },
+      });
+
+      seededUsers.push(user);
+    }
+
+    const managerUser = seededUsers.find((user) => user.role === "manager");
+    const employeeUsers = seededUsers.filter((user) => user.role === "employee");
+
+    if (managerUser) {
+      for (const employeeUser of employeeUsers) {
+        await prisma.teamAssignment.upsert({
+          where: {
+            managerId_employeeId: {
+              managerId: managerUser.id,
+              employeeId: employeeUser.id,
+            },
+          },
+          update: { active: true },
+          create: {
+            managerId: managerUser.id,
+            employeeId: employeeUser.id,
+            active: true,
+          },
+        });
+      }
+    }
+
+    for (const user of seededUsers.filter((entry) => entry.role !== "hr_admin")) {
+      for (const leaveType of persistedLeaveTypes) {
+        await prisma.leaveBalance.upsert({
+          where: {
+            userId_leaveTypeId_year: {
+              userId: user.id,
+              leaveTypeId: leaveType.id,
+              year: currentYear,
+            },
+          },
+          update: {
+            totalDays: leaveType.maxDaysPerYear,
+          },
+          create: {
+            userId: user.id,
+            leaveTypeId: leaveType.id,
+            year: currentYear,
+            totalDays: leaveType.maxDaysPerYear,
+            usedDays: 0,
+          },
+        });
+      }
+    }
+
+    const earnedLeave = persistedLeaveTypes.find((leaveType) => leaveType.name === "Earned Leave");
+    const sickLeave = persistedLeaveTypes.find((leaveType) => leaveType.name === "Sick Leave");
+
+    if (managerUser && employeeUsers.length > 0 && earnedLeave && sickLeave) {
+      await prisma.leaveRequest.deleteMany({
+        where: {
+          userId: { in: employeeUsers.map((user) => user.id) },
+          reason: { startsWith: "Seeded demo:" },
+        },
+      });
+
+      const approvedRequest = await prisma.leaveRequest.create({
+        data: {
+          userId: employeeUsers[0].id,
+          leaveTypeId: earnedLeave.id,
+          startDate: new Date(`${currentYear}-04-14`),
+          endDate: new Date(`${currentYear}-04-15`),
+          noOfDays: 2,
+          reason: "Seeded demo: Family function leave.",
+          dutyIncharge: managerUser.name,
+          status: "approved",
+        },
+      });
+
+      await prisma.approvalLog.create({
+        data: {
+          requestId: approvedRequest.id,
+          managerId: managerUser.id,
+          action: "approved",
+          comment: "Seeded demo approval.",
+        },
+      });
+
+      await prisma.leaveRequest.createMany({
+        data: [
+          {
+            userId: employeeUsers[0].id,
+            leaveTypeId: sickLeave.id,
+            startDate: new Date(`${currentYear}-06-18`),
+            endDate: new Date(`${currentYear}-06-18`),
+            dayTime: "forenoon",
+            noOfDays: 0.5,
+            reason: "Seeded demo: Medical appointment.",
+            dutyIncharge: managerUser.name,
+            status: "pending",
+          },
+          {
+            userId: employeeUsers[Math.min(1, employeeUsers.length - 1)].id,
+            leaveTypeId: earnedLeave.id,
+            startDate: new Date(`${currentYear}-07-07`),
+            endDate: new Date(`${currentYear}-07-09`),
+            noOfDays: 3,
+            reason: "Seeded demo: Planned vacation.",
+            dutyIncharge: managerUser.name,
+            status: "pending",
+          },
+        ],
+      });
+
+      await prisma.leaveBalance.updateMany({
+        where: {
+          userId: employeeUsers[0].id,
+          leaveTypeId: earnedLeave.id,
+          year: currentYear,
+        },
+        data: { usedDays: 2 },
+      });
+    }
+
+    console.log(`✅ Seeded demo users for roles: ${seededUsers.map((user) => user.role).join(", ")}`);
+    console.log("ℹ️  Use DEMO_USER_PASSWORD (or ADMIN_PASSWORD) to sign in to all seeded accounts.");
   }
 
   console.log("🎉 Seeding complete.");

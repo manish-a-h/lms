@@ -1,19 +1,40 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcryptjs from "bcryptjs";
 
-const ACCESS_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "dev-access-secret-change-in-production"
-);
-const REFRESH_SECRET = new TextEncoder().encode(
-  process.env.JWT_REFRESH_SECRET ?? "dev-refresh-secret-change-in-production"
-);
+function getRequiredSecret(name: "JWT_SECRET" | "JWT_REFRESH_SECRET") {
+  const value = process.env[name];
+
+  if (!value?.trim()) {
+    throw new Error(`Missing ${name}`);
+  }
+
+  return new TextEncoder().encode(value);
+}
+
+let accessSecret: Uint8Array | null = null;
+let refreshSecret: Uint8Array | null = null;
+
+function getAccessSecret() {
+  accessSecret ??= getRequiredSecret("JWT_SECRET");
+  return accessSecret;
+}
+
+function getRefreshSecret() {
+  refreshSecret ??= getRequiredSecret("JWT_REFRESH_SECRET");
+  return refreshSecret;
+}
 
 export type JWTPayload = {
-  sub: string;       // user id
+  sub: string;
+  jti: string;
   email: string;
   role: string;
   name: string;
 };
+
+export function createSessionTokenId() {
+  return crypto.randomUUID();
+}
 
 // ─── Password Helpers ────────────────────────────────────────────────────────
 
@@ -25,19 +46,31 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   return bcryptjs.compare(plain, hash);
 }
 
+async function signToken(
+  payload: JWTPayload,
+  secret: Uint8Array,
+  expiresIn: string
+): Promise<string> {
+  const { sub, jti, email, role, name } = payload;
+
+  return new SignJWT({ email, role, name })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(sub)
+    .setJti(jti)
+    .setIssuedAt()
+    .setExpirationTime(expiresIn)
+    .sign(secret);
+}
+
 // ─── Access Token (15 min) ───────────────────────────────────────────────────
 
 export async function signAccessToken(payload: JWTPayload): Promise<string> {
   const expires = process.env.JWT_ACCESS_EXPIRES ?? "15m";
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(expires)
-    .sign(ACCESS_SECRET);
+  return signToken(payload, getAccessSecret(), expires);
 }
 
 export async function verifyAccessToken(token: string): Promise<JWTPayload> {
-  const { payload } = await jwtVerify(token, ACCESS_SECRET);
+  const { payload } = await jwtVerify(token, getAccessSecret());
   return payload as unknown as JWTPayload;
 }
 
@@ -45,15 +78,11 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload> {
 
 export async function signRefreshToken(payload: JWTPayload): Promise<string> {
   const days = Number(process.env.JWT_REFRESH_EXPIRES_DAYS ?? 7);
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${days}d`)
-    .sign(REFRESH_SECRET);
+  return signToken(payload, getRefreshSecret(), `${days}d`);
 }
 
 export async function verifyRefreshToken(token: string): Promise<JWTPayload> {
-  const { payload } = await jwtVerify(token, REFRESH_SECRET);
+  const { payload } = await jwtVerify(token, getRefreshSecret());
   return payload as unknown as JWTPayload;
 }
 

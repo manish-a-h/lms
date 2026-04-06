@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyRefreshToken, verifyTokenHash } from "@/lib/auth";
+import { TokenPurpose } from "@/generated/prisma/client";
+import { verifyRefreshToken } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
@@ -10,13 +11,16 @@ export async function POST(request: NextRequest) {
       try {
         const payload = await verifyRefreshToken(refreshToken);
 
-        // Revoke all refresh tokens for this user
         await db.refreshToken.updateMany({
-          where: { userId: payload.sub, revoked: false },
+          where: {
+            userId: payload.sub,
+            purpose: TokenPurpose.session,
+            revoked: false,
+          },
           data: { revoked: true },
         });
       } catch {
-        // Token invalid — still clear cookies
+        // Token invalid — still clear cookies.
       }
     }
 

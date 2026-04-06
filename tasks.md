@@ -37,62 +37,62 @@ Current repo baseline:
 - [x] Ensure components meet the DRD click target, hover, disabled, and focus behaviors
 
 ## 4. Database and Prisma Expansion
-- [ ] Replace the minimal schema with the full LMS schema required by the documents
-- [ ] Expand `User` model with profile, department, designation, payroll, and contact fields
-- [ ] Add models for `LeaveType`, `LeaveBalance`, `ApprovalLog`, `SalaryComponent`, `SalarySlip`, `Holiday`, and `RefreshToken`
-- [ ] Expand `LeaveRequest` with leave type, duty incharge, day time, computed days, comments, and audit fields
-- [ ] Add enums for role, leave status, approval action, and salary component type where appropriate
-- [ ] Create Prisma migrations for the full schema
-- [ ] Add seed data for leave types, holidays, and a default HR Admin account
-- [ ] Document required environment variables for Prisma/PostgreSQL
+- [x] Replace the minimal schema with the full LMS schema required by the documents
+- [x] Expand `User` model with profile, department, designation, payroll, and contact fields
+- [x] Add models for `LeaveType`, `LeaveBalance`, `ApprovalLog`, `SalaryComponent`, `SalarySlip`, `Holiday`, and `RefreshToken`
+- [x] Expand `LeaveRequest` with leave type, duty incharge, day time, computed days, comments, and audit fields
+- [x] Add enums for role, leave status, approval action, and salary component type where appropriate
+- [x] Create Prisma migrations for the full schema
+- [x] Add seed data for leave types, holidays, and a default HR Admin account
+- [x] Document required environment variables for Prisma/PostgreSQL
 
 ## 5. Authentication and Authorization
-- [ ] Build login page matching DRD requirements
-- [ ] Implement session strategy for Next.js app routes and protected pages
-- [ ] Add login, logout, refresh/session renewal, forgot-password, and reset-password flows
-- [ ] Guard authenticated routes by role: Employee, Manager, HR Admin
-- [ ] Add server-side authorization checks for all sensitive mutations and data reads
-- [ ] Handle expired sessions and redirect users cleanly back to sign-in
+- [x] Build login page matching DRD requirements
+- [x] Implement session strategy for Next.js app routes and protected pages
+- [x] Add login, logout, refresh/session renewal, forgot-password, and reset-password flows
+- [x] Guard authenticated routes by role: Employee, Manager, HR Admin
+- [x] Add server-side authorization checks for all sensitive mutations and data reads
+- [x] Handle expired sessions and redirect users cleanly back to sign-in
 
 ## 6. Employee Dashboard
-- [ ] Create employee dashboard route and page layout
-- [ ] Show welcome block with employee name and current date
-- [ ] Add leave balance summary cards by leave type
-- [ ] Add prominent Apply for Leave action
-- [ ] Add recent leave requests table with status badges
-- [ ] Add upcoming approved leaves mini-calendar widget
-- [ ] Add latest unread notifications panel
+- [x] Create employee dashboard route and page layout
+- [x] Show welcome block with employee name and current date
+- [x] Add leave balance summary cards by leave type
+- [x] Add prominent Apply for Leave action
+- [x] Add recent leave requests table with status badges
+- [x] Add upcoming approved leaves mini-calendar widget
+- [x] Add latest unread notifications panel
 
 ## 7. Leave Module - Employee Experience
-- [ ] Create leave apply route and page in `src/app`
-- [ ] Build 4-step leave application form with stepper
-- [ ] Add leave type selection with descriptions
-- [ ] Add date range selection with weekend and holiday exclusion
-- [ ] Add day-time handling for full day, forenoon, and afternoon requests
-- [ ] Compute number of days automatically and show live balance preview
-- [ ] Add duty incharge and reason validation
-- [ ] Add review-and-submit step with confirmation checkbox
-- [ ] Add leave history table with sorting and pagination
-- [ ] Add leave card page with total, used, remaining, and pending balances
-- [ ] Add approved/rejected/pending listing with cancel action for pending entries
+- [x] Create leave apply route and page in `src/app`
+- [x] Build 4-step leave application form with stepper
+- [x] Add leave type selection with descriptions
+- [x] Add date range selection with weekend and holiday exclusion
+- [x] Add day-time handling for full day, forenoon, and afternoon requests
+- [x] Compute number of days automatically and show live balance preview
+- [x] Add duty incharge and reason validation
+- [x] Add review-and-submit step with confirmation checkbox
+- [x] Add leave history table with sorting and pagination
+- [x] Add leave card page with total, used, remaining, and pending balances
+- [x] Add approved/rejected/pending listing with cancel action for pending entries
 
 ## 8. Leave Module - Manager Experience
-- [ ] Create manager dashboard route and layout
-- [ ] Build pending approvals list with employee, leave type, dates, and day count
-- [ ] Add quick approve/reject actions
-- [ ] Add reject modal with mandatory comment support when needed by workflow
-- [ ] Build team leave calendar with color-coded leave blocks
-- [ ] Add filters for employee name, leave type, and date range
-- [ ] Add team conflict warning when 3 or more members overlap
+- [x] Create manager dashboard route and layout
+- [x] Build pending approvals list with employee, leave type, dates, and day count
+- [x] Add quick approve/reject actions
+- [x] Add reject modal with mandatory comment support when needed by workflow
+- [x] Build team leave calendar with color-coded leave blocks
+- [x] Add filters for employee name, leave type, and date range
+- [x] Add team conflict warning when 3 or more members overlap
 
 ## 9. HR Admin Experience
-- [ ] Create admin routes for user management, leave policy, holiday calendar, reports, and activity log
-- [ ] Build user management table with edit and deactivate actions
-- [ ] Build leave policy CRUD screens
-- [ ] Build holiday calendar CRUD or import flow
-- [ ] Build reports screen with date range and module filters
-- [ ] Add PDF and CSV export flows
-- [ ] Build system activity log with pagination and actor/timestamp details
+- [x] Create admin routes for user management, leave policy, holiday calendar, reports, and activity log
+- [x] Build user management table with edit and deactivate actions
+- [x] Build leave policy CRUD screens
+- [x] Build holiday calendar CRUD or import flow
+- [x] Build reports screen with date range and module filters
+- [x] Add PDF and CSV export flows
+- [x] Build system activity log with pagination and actor/timestamp details
 
 ## 10. Profile Module
 - [ ] Build profile view page with all required employee fields from the task document

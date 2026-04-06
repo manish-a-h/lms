@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { verifyAccessToken, type JWTPayload } from "./auth";
 
+const DEFAULT_ACCESS_TOKEN_SECONDS = 60 * 15;
+
 export type SessionUser = JWTPayload;
 
 // ─── Read session from request cookies ──────────────────────────────────────
@@ -46,13 +48,37 @@ export async function requireRole(
 
 // ─── Cookie helpers ──────────────────────────────────────────────────────────
 
+function parseDurationToSeconds(value: string | undefined, fallbackSeconds: number) {
+  if (!value) return fallbackSeconds;
+
+  const trimmed = value.trim();
+  const durationMatch = /^(\d+)\s*([smhd])$/i.exec(trimmed);
+  if (durationMatch) {
+    const amount = Number(durationMatch[1]);
+    const unit = durationMatch[2].toLowerCase();
+
+    const multiplier =
+      unit === "s" ? 1 : unit === "m" ? 60 : unit === "h" ? 60 * 60 : 60 * 60 * 24;
+
+    return amount * multiplier;
+  }
+
+  const numericSeconds = Number(trimmed);
+  return Number.isFinite(numericSeconds) && numericSeconds > 0
+    ? numericSeconds
+    : fallbackSeconds;
+}
+
 export function accessTokenCookieOptions() {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
-    maxAge: 60 * 15, // 15 minutes
+    maxAge: parseDurationToSeconds(
+      process.env.JWT_ACCESS_EXPIRES,
+      DEFAULT_ACCESS_TOKEN_SECONDS
+    ),
   };
 }
 
