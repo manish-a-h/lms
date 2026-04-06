@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type ProfileAvatarProps = {
@@ -13,24 +14,35 @@ const sizeMap = {
   lg: "h-24 w-24 text-3xl",
 };
 
+const sizePixels = {
+  sm: 40,
+  md: 64,
+  lg: 96,
+};
+
 export function ProfileAvatar({
   name,
   avatarUrl,
   size = "md",
   className,
 }: ProfileAvatarProps) {
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const trimmedName = name?.trim() || "";
+  const initials = trimmedName
+    ? trimmedName
+        .split(" ")
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "?";
 
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={name}
+        width={sizePixels[size]}
+        height={sizePixels[size]}
         className={cn(
           "rounded-full object-cover ring-2 ring-white/40 shadow-[0_18px_30px_-18px_rgba(0,74,198,0.45)]",
           sizeMap[size],

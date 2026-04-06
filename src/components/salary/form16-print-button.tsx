@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export function Form16PrintButton() {
   return (
-    <div className="flex justify-end">
+    <div className="print:hidden flex justify-end">
       <Button
         type="button"
         variant="outline"

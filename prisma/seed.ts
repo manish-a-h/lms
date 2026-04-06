@@ -335,7 +335,7 @@ async function main() {
             year: slipYear,
             grossSalary: totalEarnings,
             netSalary: netSalary,
-            generatedAt: new Date(slipYear, slipMonth, 1),
+            generatedAt: new Date(slipYear, slipMonth - 1, 1),
           },
         });
 
@@ -369,7 +369,12 @@ async function main() {
 
     for (const update of profileUpdates) {
       const { email, ...data } = update;
-      await prisma.user.update({ where: { email }, data }).catch(() => {});
+      try {
+        await prisma.user.update({ where: { email }, data });
+      } catch (error) {
+        console.error(`Failed to update user profile for ${email}:`, error);
+        process.exit(1);
+      }
     }
 
     console.log("✅ Seeded salary components, slips, and profile data for demo users");

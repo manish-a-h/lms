@@ -192,10 +192,20 @@
   }
 }
 
-/* ─── Print Styles ─────────────────────────────────────────────────────────── */
 @media print {
+  body, .dark {
+    --background: #f7f9fb !important;
+    --foreground: #191c1e !important;
+    --card: #ffffff !important;
+    --card-foreground: #191c1e !important;
+    --muted: #f2f4f6 !important;
+    --muted-foreground: #606b75 !important;
+    color-scheme: light !important;
+  }
+
   body {
     background: white !important;
+    color: black !important;
     background-image: none !important;
   }
 

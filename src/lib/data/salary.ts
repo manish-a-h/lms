@@ -9,12 +9,14 @@ export async function getSalaryComponents(userId: string) {
 
   const earnings = components.filter((c) => c.type === SalaryComponentType.earning);
   const deductions = components.filter((c) => c.type === SalaryComponentType.deduction);
-  const totalEarnings = earnings.reduce((sum, c) => sum + c.amount, 0);
-  const totalDeductions = deductions.reduce((sum, c) => sum + c.amount, 0);
+  const mappedEarnings = earnings.map(c => ({ ...c, amount: Number(c.amount) }));
+  const mappedDeductions = deductions.map(c => ({ ...c, amount: Number(c.amount) }));
+  const totalEarnings = mappedEarnings.reduce((sum, c) => sum + c.amount, 0);
+  const totalDeductions = mappedDeductions.reduce((sum, c) => sum + c.amount, 0);
 
   return {
-    earnings,
-    deductions,
+    earnings: mappedEarnings,
+    deductions: mappedDeductions,
     totalEarnings,
     totalDeductions,
     netSalary: totalEarnings - totalDeductions,
@@ -23,7 +25,8 @@ export async function getSalaryComponents(userId: string) {
 
 export async function getSalarySlips(
   userId: string,
-  year?: number
+  year?: number,
+  month?: number
 ) {
   const currentYear = year ?? new Date().getFullYear();
 
@@ -31,6 +34,7 @@ export async function getSalarySlips(
     where: {
       userId,
       year: currentYear,
+      ...(month !== undefined ? { month } : {}),
     },
     orderBy: [{ year: "desc" }, { month: "desc" }],
     select: {
@@ -41,7 +45,11 @@ export async function getSalarySlips(
       netSalary: true,
       generatedAt: true,
     },
-  });
+  }).then(slips => slips.map(s => ({
+    ...s,
+    grossSalary: Number(s.grossSalary),
+    netSalary: Number(s.netSalary),
+  })));
 }
 
 export async function getSalarySlipDetail(
@@ -73,6 +81,18 @@ export async function getSalarySlipDetail(
       },
     },
   });
+
+  if (!slip) return null;
+
+  return {
+    ...slip,
+    grossSalary: Number(slip.grossSalary),
+    netSalary: Number(slip.netSalary),
+    lineItems: slip.lineItems.map(li => ({
+      ...li,
+      amount: Number(li.amount)
+    }))
+  };
 }
 
 export async function getSalarySlipByMonthYear(
@@ -100,6 +120,18 @@ export async function getSalarySlipByMonthYear(
       },
     },
   });
+
+  if (!slip) return null;
+
+  return {
+    ...slip,
+    grossSalary: Number(slip.grossSalary),
+    netSalary: Number(slip.netSalary),
+    lineItems: slip.lineItems.map(li => ({
+      ...li,
+      amount: Number(li.amount)
+    }))
+  };
 }
 
 export async function getForm16Data(
@@ -144,16 +176,17 @@ export async function getForm16Data(
   const componentTotals = new Map<string, { amount: number; type: SalaryComponentType }>();
 
   for (const slip of slips) {
-    totalGross += slip.grossSalary;
-    totalNet += slip.netSalary;
+    totalGross += Number(slip.grossSalary);
+    totalNet += Number(slip.netSalary);
 
     for (const item of slip.lineItems) {
+      const amount = Number(item.amount);
       const existing = componentTotals.get(item.componentName);
       if (existing) {
-        existing.amount += item.amount;
+        existing.amount += amount;
       } else {
         componentTotals.set(item.componentName, {
-          amount: item.amount,
+          amount: amount,
           type: item.type,
         });
       }
@@ -174,8 +207,8 @@ export async function getForm16Data(
     slips: slips.map((s) => ({
       month: s.month,
       year: s.year,
-      grossSalary: s.grossSalary,
-      netSalary: s.netSalary,
+      grossSalary: Number(s.grossSalary),
+      netSalary: Number(s.netSalary),
     })),
     earningsTotals,
     deductionsTotals,

@@ -13,19 +13,7 @@ import { verifyAccessToken } from "@/lib/auth";
 import { getSalaryComponents, getSalarySlips } from "@/lib/data/salary";
 import { SalaryFilter } from "@/components/salary/salary-filter";
 
-const monthNames = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+import { monthNames, formatCurrency } from "@/lib/format";
 
 export default async function SalaryPage({
   searchParams,

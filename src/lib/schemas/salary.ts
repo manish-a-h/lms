@@ -10,6 +10,10 @@ export const form16FilterSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{4}-\d{4}$/, "Financial year must be in YYYY-YYYY format (e.g. 2025-2026).")
+    .refine((val) => {
+      const parts = val.split('-');
+      return parts.length === 2 && Number(parts[1]) === Number(parts[0]) + 1;
+    }, "End year must be start year + 1")
     .optional(),
 });
 

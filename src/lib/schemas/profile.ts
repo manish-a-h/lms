@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const phoneRegex = /^[6-9]\d{9}$/;
+const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
 export const updateProfileSchema = z.object({
   name: z
@@ -65,11 +66,13 @@ export const updateProfileSchema = z.object({
   dob: z
     .string()
     .trim()
+    .refine((v) => v === "" || dateRegex.test(v), "Invalid date format (YYYY-MM-DD).")
     .optional()
     .or(z.literal("")),
   dateOfJoin: z
     .string()
     .trim()
+    .refine((v) => v === "" || dateRegex.test(v), "Invalid date format (YYYY-MM-DD).")
     .optional()
     .or(z.literal("")),
 });

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const slips = await getSalarySlips(sessionUser.sub, parsed.data.year);
+    const slips = await getSalarySlips(sessionUser.sub, parsed.data.year, parsed.data.month);
     return NextResponse.json({ ok: true, slips });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to load salary slips.";

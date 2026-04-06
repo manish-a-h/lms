@@ -4,6 +4,7 @@ import { Activity, CalendarDays, FileBarChart2, ShieldCheck, Users } from "lucid
 import { verifyAccessToken } from "@/lib/auth";
 import { getAdminOverview } from "@/lib/data/admin";
 import { formatRoleLabel } from "@/lib/utils";
+import { HrCalendar } from "@/components/admin/hr-calendar";
 
 export default async function AdminPage() {
   const cookieStore = await cookies();
@@ -55,7 +56,11 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+      <div className="mt-8">
+        <HrCalendar />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr] mt-8">
         <section className="atelier-panel p-6">
           <div className="mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-[#2E75B6]" />
@@ -107,10 +112,10 @@ export default async function AdminPage() {
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-[#2E75B6]" />
-              <h2 className="text-lg font-semibold text-foreground">Holiday calendar</h2>
+              <h2 className="text-lg font-semibold text-foreground">Upcoming public holidays</h2>
             </div>
             <div className="space-y-3">
-              {overview.holidays.slice(0, 6).map((holiday) => (
+              {overview.holidays.slice(0, 3).map((holiday) => (
                 <div key={holiday.id} className="atelier-panel-muted p-3 text-sm">
                   <p className="font-medium text-foreground">{holiday.name}</p>
                   <p className="text-muted-foreground">

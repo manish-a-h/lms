@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,15 @@ export function SalaryFilter({ currentYear }: { currentYear: number }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [year, setYear] = useState(searchParams.get("year") ?? String(currentYear));
+
+  useEffect(() => {
+    const pYear = searchParams.get("year");
+    if (pYear && pYear !== year) {
+      setYear(pYear);
+    } else if (!pYear && year !== String(currentYear)) {
+      setYear(String(currentYear));
+    }
+  }, [searchParams, currentYear]);
 
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 

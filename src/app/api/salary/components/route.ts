@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const components = await getSalaryComponents(sessionUser.sub);
     return NextResponse.json({ ok: true, ...components });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to load salary components.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

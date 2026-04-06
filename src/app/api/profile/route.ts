@@ -50,6 +50,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ ok: true, user: updatedUser });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to update profile.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const isClientError = error instanceof Error && error.message.toLowerCase().includes("validation");
+    if (!isClientError) console.error(error);
+    return NextResponse.json({ error: message }, { status: isClientError ? 400 : 500 });
   }
 }
