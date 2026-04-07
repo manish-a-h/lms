@@ -9,8 +9,8 @@ export async function getSalaryComponents(userId: string) {
 
   const earnings = components.filter((c) => c.type === SalaryComponentType.earning);
   const deductions = components.filter((c) => c.type === SalaryComponentType.deduction);
-  const mappedEarnings = earnings.map(c => ({ ...c, amount: Number(c.amount) }));
-  const mappedDeductions = deductions.map(c => ({ ...c, amount: Number(c.amount) }));
+  const mappedEarnings = earnings.map((c) => ({ ...c, amount: Number(c.amount) }));
+  const mappedDeductions = deductions.map((c) => ({ ...c, amount: Number(c.amount) }));
   const totalEarnings = mappedEarnings.reduce((sum, c) => sum + c.amount, 0);
   const totalDeductions = mappedDeductions.reduce((sum, c) => sum + c.amount, 0);
 
@@ -30,7 +30,7 @@ export async function getSalarySlips(
 ) {
   const currentYear = year ?? new Date().getFullYear();
 
-  return db.salarySlip.findMany({
+  const slips = await db.salarySlip.findMany({
     where: {
       userId,
       year: currentYear,
@@ -45,18 +45,17 @@ export async function getSalarySlips(
       netSalary: true,
       generatedAt: true,
     },
-  }).then(slips => slips.map(s => ({
+  });
+
+  return slips.map((s) => ({
     ...s,
     grossSalary: Number(s.grossSalary),
     netSalary: Number(s.netSalary),
-  })));
+  }));
 }
 
-export async function getSalarySlipDetail(
-  userId: string,
-  slipId: string
-) {
-  return db.salarySlip.findFirst({
+export async function getSalarySlipDetail(userId: string, slipId: string) {
+  const slip = await db.salarySlip.findFirst({
     where: {
       id: slipId,
       userId,
@@ -88,10 +87,10 @@ export async function getSalarySlipDetail(
     ...slip,
     grossSalary: Number(slip.grossSalary),
     netSalary: Number(slip.netSalary),
-    lineItems: slip.lineItems.map(li => ({
+    lineItems: slip.lineItems.map((li) => ({
       ...li,
-      amount: Number(li.amount)
-    }))
+      amount: Number(li.amount),
+    })),
   };
 }
 
@@ -100,7 +99,7 @@ export async function getSalarySlipByMonthYear(
   month: number,
   year: number
 ) {
-  return db.salarySlip.findUnique({
+  const slip = await db.salarySlip.findUnique({
     where: {
       userId_month_year: { userId, month, year },
     },
@@ -127,18 +126,14 @@ export async function getSalarySlipByMonthYear(
     ...slip,
     grossSalary: Number(slip.grossSalary),
     netSalary: Number(slip.netSalary),
-    lineItems: slip.lineItems.map(li => ({
+    lineItems: slip.lineItems.map((li) => ({
       ...li,
-      amount: Number(li.amount)
-    }))
+      amount: Number(li.amount),
+    })),
   };
 }
 
-export async function getForm16Data(
-  userId: string,
-  startYear: number
-) {
-  // Financial year: April startYear to March startYear+1
+export async function getForm16Data(userId: string, startYear: number) {
   const endYear = startYear + 1;
 
   const slips = await db.salarySlip.findMany({
@@ -170,7 +165,6 @@ export async function getForm16Data(
     },
   });
 
-  // Aggregate totals
   let totalGross = 0;
   let totalNet = 0;
   const componentTotals = new Map<string, { amount: number; type: SalaryComponentType }>();
@@ -182,11 +176,12 @@ export async function getForm16Data(
     for (const item of slip.lineItems) {
       const amount = Number(item.amount);
       const existing = componentTotals.get(item.componentName);
+
       if (existing) {
         existing.amount += amount;
       } else {
         componentTotals.set(item.componentName, {
-          amount: amount,
+          amount,
           type: item.type,
         });
       }
