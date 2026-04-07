@@ -5,10 +5,43 @@ import { ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon } from "lu
 import { Button } from "@/components/ui/button";
 import { CalendarDayModal } from "./calendar-day-modal";
 
+interface CalendarLeave {
+  id: string;
+  startDate: Date;
+  endDate: Date;
+  status: string;
+  reason: string;
+  dayTime: string;
+  user: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    department: string | null;
+    designation: string | null;
+  };
+}
+
+interface CalendarHoliday {
+  date: Date;
+  name: string;
+}
+
 interface CalendarData {
-  leaves: any[];
-  holidays: any[];
+  leaves: CalendarLeave[];
+  holidays: CalendarHoliday[];
   activeUsersCount: number;
+}
+
+interface RawLeave {
+  startDate: string;
+  endDate: string;
+  status: string;
+  user: { name: string };
+}
+
+interface RawHoliday {
+  date: string;
+  name: string;
 }
 
 export function HrCalendar() {
@@ -23,13 +56,12 @@ export function HrCalendar() {
       const res = await fetch(`/api/admin/calendar?year=${date.getFullYear()}&month=${date.getMonth() + 1}`);
       if (res.ok) {
         const json = await res.json();
-        // ensure dates are properly parsed
-        json.leaves = json.leaves.map((l: any) => ({
+        json.leaves = json.leaves.map((l: RawLeave) => ({
           ...l,
           startDate: new Date(l.startDate),
           endDate: new Date(l.endDate),
         }));
-        json.holidays = json.holidays.map((h: any) => ({
+        json.holidays = json.holidays.map((h: RawHoliday) => ({
           ...h,
           date: new Date(h.date),
         }));
@@ -46,29 +78,45 @@ export function HrCalendar() {
     fetchCalendarData(currentDate);
   }, [currentDate]);
 
-  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const handlePrevMonth = () =>
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const handleNextMonth = () =>
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-  // Adjust so Monday is 0
   const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const blanks = Array.from({ length: startOffset }, (_, i) => i);
 
   const getDayInfo = (day: number) => {
-    if (!data) return { leaves: [], holiday: null };
-    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split("T")[0];
-    
-    const holiday = data.holidays.find((h) => h.date.toISOString().split("T")[0] === dateStr) || null;
-    
-    const targetTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getTime();
+    if (!data) return { leaves: [] as CalendarLeave[], holiday: null as CalendarHoliday | null };
+    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+      .toISOString()
+      .split("T")[0];
+
+    const holiday = data.holidays.find(
+      (h) => h.date.toISOString().split("T")[0] === dateStr
+    ) ?? null;
+
+    const targetTime = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    ).getTime();
 
     const intersectingLeaves = data.leaves.filter((l) => {
-      // Set to midnight local to compare days properly
-      const start = new Date(l.startDate.getFullYear(), l.startDate.getMonth(), l.startDate.getDate()).getTime();
-      const end = new Date(l.endDate.getFullYear(), l.endDate.getMonth(), l.endDate.getDate()).getTime();
+      const start = new Date(
+        l.startDate.getFullYear(),
+        l.startDate.getMonth(),
+        l.startDate.getDate()
+      ).getTime();
+      const end = new Date(
+        l.endDate.getFullYear(),
+        l.endDate.getMonth(),
+        l.endDate.getDate()
+      ).getTime();
       return targetTime >= start && targetTime <= end;
     });
 
@@ -76,7 +124,7 @@ export function HrCalendar() {
   };
 
   const getSelectedDayInfo = () => {
-    if (!selectedDate || !data) return { leaves: [], holiday: null };
+    if (!selectedDate || !data) return { leaves: [] as CalendarLeave[], holiday: null as CalendarHoliday | null };
     return getDayInfo(selectedDate.getDate());
   };
 
@@ -142,11 +190,9 @@ export function HrCalendar() {
                 }`}
               >
                 <div className="flex justify-between items-start">
-                  <span
-                    className={`inline-flex items-center justify-center h-7 w-7 rounded-full text-sm font-bold ${
-                      isToday ? "bg-blue-600 text-white shadow-md" : "text-slate-700 group-hover:text-blue-600"
-                    }`}
-                  >
+                  <span className={`inline-flex items-center justify-center h-7 w-7 rounded-full text-sm font-bold ${
+                    isToday ? "bg-blue-600 text-white shadow-md" : "text-slate-700 group-hover:text-blue-600"
+                  }`}>
                     {day}
                   </span>
                   {holiday && (

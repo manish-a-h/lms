@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${manrope.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
-        <Toaster richColors position="top-right" />
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

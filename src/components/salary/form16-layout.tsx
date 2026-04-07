@@ -3,6 +3,29 @@ import { ArrowLeft } from "lucide-react";
 import { Form16PrintButton } from "@/components/salary/form16-print-button";
 import { monthNames, formatCurrency } from "@/lib/format";
 
+interface Form16User {
+  name: string;
+  department: string | null;
+  designation: string | null;
+  panNo: string | null;
+  institution: string | null;
+}
+
+interface Form16Slip {
+  month: number;
+  year: number;
+  grossSalary: number;
+  netSalary: number;
+}
+
+interface Form16Data {
+  financialYear: string;
+  user?: Form16User | null;
+  slips?: Form16Slip[];
+  totalGross: number;
+  totalNet: number;
+}
+
 export function Form16Layout({
   title,
   subtitle,
@@ -18,7 +41,7 @@ export function Form16Layout({
   watermarkText?: string;
   year: number;
   years: number[];
-  data: any;
+  data: Form16Data;
   basePath: string;
   children?: React.ReactNode;
 }) {
@@ -36,11 +59,11 @@ export function Form16Layout({
         <div className="flex flex-wrap items-center gap-2">
           {years.length > 0 && (
             <div className="flex items-center gap-2">
-               {!watermarkText && (
-                  <label htmlFor="form16-year" className="text-xs text-muted-foreground">
-                   FY:
-                  </label>
-               )}
+              {!watermarkText && (
+                <label htmlFor="form16-year" className="text-xs text-muted-foreground">
+                  FY:
+                </label>
+              )}
               {years.map((y) => (
                 <Link
                   key={y}
@@ -83,7 +106,9 @@ export function Form16Layout({
             </div>
           )}
           <h2 className="font-heading text-xl font-bold text-foreground">
-            {watermarkText ? "Provisional Form 16" : "Form 16 — Certificate under Section 203 of the Income Tax Act"}
+            {watermarkText
+              ? "Provisional Form 16"
+              : "Form 16 — Certificate under Section 203 of the Income Tax Act"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Financial Year: {data.financialYear} | Assessment Year: {year + 1}-{year + 2}
@@ -96,7 +121,7 @@ export function Form16Layout({
               <p><span className="text-muted-foreground">Name:</span> <span className="font-medium">{data.user.name}</span></p>
               <p><span className="text-muted-foreground">Department:</span> <span className="font-medium">{data.user.department ?? "—"}</span></p>
               {!watermarkText && (
-                 <p><span className="text-muted-foreground">Designation:</span> <span className="font-medium">{data.user.designation ?? "—"}</span></p>
+                <p><span className="text-muted-foreground">Designation:</span> <span className="font-medium">{data.user.designation ?? "—"}</span></p>
               )}
             </div>
             <div className="space-y-1.5 text-right">
@@ -121,12 +146,16 @@ export function Form16Layout({
                   <thead>
                     <tr className="bg-muted/80">
                       <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Month</th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">{watermarkText ? "Gross" : "Gross Salary"}</th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">{watermarkText ? "Net" : "Net Salary"}</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        {watermarkText ? "Gross" : "Gross Salary"}
+                      </th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        {watermarkText ? "Net" : "Net Salary"}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.slips.map((slip: any, i: number) => (
+                    {data.slips?.map((slip, i) => (
                       <tr key={`${slip.month}-${slip.year}`} className={i % 2 === 1 ? "bg-muted/30" : ""}>
                         <td className="px-4 py-2 font-medium">{monthNames[slip.month - 1]} {slip.year}</td>
                         <td className="px-4 py-2 text-right tabular-nums">{formatCurrency(slip.grossSalary)}</td>
@@ -148,7 +177,7 @@ export function Form16Layout({
         )}
 
         <p className="relative mt-6 text-center text-xs text-muted-foreground print:mt-8">
-          {watermarkText 
+          {watermarkText
             ? "This is a provisional statement and may change. Final Form-16 will be issued after financial year close."
             : "This is a computer-generated Form 16. No signature required."}
         </p>

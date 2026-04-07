@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LMS — Leave Management System
 
-## Getting Started
+A full-stack Leave Management System built with Next.js 16, React 19, TypeScript, Tailwind CSS 4, Prisma, and PostgreSQL.
 
-First, run the development server:
+## Module Scope
+
+| Module | Status |
+|--------|--------|
+| Authentication (Login, Logout, Refresh) | ✅ Complete |
+| Employee Dashboard | ✅ Complete |
+| Leave Module (Apply, History, Balances) | ✅ Complete |
+| Manager Approvals & Team Calendar | ✅ Complete |
+| HR Admin (Users, Policy, Reports, Logs) | ✅ Complete |
+| Profile Module | 🔧 In Progress |
+| Salary Module | 🔧 In Progress |
+| Notifications | 🔧 In Progress |
+
+> **Out of scope:** Online Services module.
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| UI Primitives | shadcn/ui + Base UI |
+| ORM | Prisma 7 |
+| Database | PostgreSQL 16 |
+| Auth | JWT (jose) + Refresh Tokens |
+| Validation | Zod |
+| Email | Nodemailer (SMTP) |
+| Testing | Jest + React Testing Library |
+
+## Prerequisites
+
+- Node.js ≥ 20.19
+- PostgreSQL 16 running locally or via Docker
+- npm
+
+## Local Setup
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/sujalmh/lms.git
+cd lms
+npm install
+```
+
+### 2. Configure environment
+
+```bash
+copy .env.example .env
+```
+
+Open `.env` and fill in your `DATABASE_URL`, `JWT_SECRET`, and optionally SMTP settings.
+
+### 3. Set up the database
+
+```bash
+# Generate Prisma client
+npm run db:generate
+
+# Run all migrations
+npm run db:migrate
+
+# Seed with default data
+npm run db:seed
+```
+
+Default HR Admin credentials after seeding:
+- **Email:** `admin@lms.local`
+- **Password:** `Admin@1234`
+
+### 4. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npm run db:migrate` | Run pending migrations |
+| `npm run db:seed` | Seed default data |
+| `npm run db:reset` | Wipe all data and re-seed (local dev only) |
+| `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 
-## Learn More
+## Running Tests
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test                 # Run all tests once
+npm run test:watch       # Watch mode — reruns on file save
+npm run test:coverage    # With coverage report
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Using Docker for PostgreSQL (Windows)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If you don't have PostgreSQL installed locally:
 
-## Deploy on Vercel
+```bash
+docker run --name lms-postgres ^
+  -e POSTGRES_USER=postgres ^
+  -e POSTGRES_PASSWORD=password ^
+  -e POSTGRES_DB=lms_db ^
+  -p 5432:5432 ^
+  -d postgres:16
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Then set `DATABASE_URL=postgresql://postgres:password@localhost:5432/lms_db` in `.env`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+src/
+├── app/ # Next.js App Router pages and API routes
+│ ├── (auth)/ # Login, forgot password pages
+│ ├── (dashboard)/ # Protected dashboard pages
+│ └── api/ # Route handlers
+├── components/ # Shared UI components
+└── lib/ # Utilities, Prisma client, auth, schemas
+prisma/
+├── schema.prisma # Database schema
+├── seed.ts # Seed script
+└── reset.ts # Reset + re-seed script (local dev only)
+
+## Database Backup
+
+```bash
+# Backup
+pg_dump -U postgres -d lms_db -F c -f backup_%date:~-4,4%%date:~-10,2%%date:~-7,2%.dump
+
+# Restore
+pg_restore -U postgres -d lms_db -F c backup_20260407.dump
+```
+

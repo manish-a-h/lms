@@ -119,28 +119,28 @@ Current repo baseline:
 - [ ] Add audit logging for admin and approval actions
 
 ## 13. Notifications and Background Work
-- [ ] Add toast feedback for success and error states
-- [ ] Design notification persistence model and unread/read behavior
-- [ ] Trigger notifications on leave submission, approval, rejection, and cancellation
-- [ ] Add email delivery flow if SMTP remains part of scope
-- [ ] Add scheduled reminders for pending approvals and yearly leave resets if deployment model supports cron jobs
+- [x] Add toast feedback for success and error states
+- [x] Design notification persistence model and unread/read behavior
+- [x] Trigger notifications on leave submission, approval, rejection, and cancellation
+- [x] Add email delivery flow if SMTP remains part of scope
+- [x] Add scheduled reminders for pending approvals and yearly leave resets if deployment model supports cron jobs
 
 ## 14. Testing and Quality
-- [ ] Add unit tests for leave day calculation, overlap detection, and balance rules
-- [ ] Add component tests for login, leave apply flow, and critical forms
+- [x] Add unit tests for leave day calculation, overlap detection, and balance rules
+- [x] Add component tests for login, leave apply flow, and critical forms
 - [ ] Add integration tests for auth, leave, profile, and admin flows
 - [ ] Add accessibility checks for keyboard navigation and form labeling
 - [ ] Add responsive QA pass for mobile, tablet, desktop, and wide layouts
-- [ ] Define a realistic coverage target for this repo and enforce it in CI
+- [x] Define a realistic coverage target for this repo and enforce it in CI
 
 ## 15. DevOps and Documentation
-- [ ] Add `.env.example` for database, auth, and email configuration
-- [ ] Add local development instructions for Prisma and PostgreSQL
-- [ ] Add CI workflow for lint, typecheck, test, and build
-- [ ] Add seed/reset scripts for local development
-- [ ] Update `README.md` with module scope, stack, and setup steps
-- [ ] Add `CONTRIBUTING.md` with branch naming, PR rules, and commit format
-- [ ] Document backup and deployment approach for PostgreSQL
+- [x] Add `.env.example` for database, auth, and email configuration
+- [x] Add local development instructions for Prisma and PostgreSQL
+- [x] Add CI workflow for lint, typecheck, test, and build
+- [x] Add seed/reset scripts for local development
+- [x] Update `README.md` with module scope, stack, and setup steps
+- [x] Add `CONTRIBUTING.md` with branch naming, PR rules, and commit format
+- [x] Document backup and deployment approach for PostgreSQL
 
 ## 16. Suggested Build Order
 - [ ] Phase 1: Prisma schema, auth, layout shell, design tokens
