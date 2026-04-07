@@ -11,8 +11,8 @@ A full-stack Leave Management System built with Next.js 16, React 19, TypeScript
 | Leave Module (Apply, History, Balances) | ✅ Complete |
 | Manager Approvals & Team Calendar | ✅ Complete |
 | HR Admin (Users, Policy, Reports, Logs) | ✅ Complete |
-| Profile Module | 🔧 In Progress |
-| Salary Module | 🔧 In Progress |
+| Profile Module | ✅ Complete |
+| Salary Module | ✅ Complete |
 | Notifications | 🔧 In Progress |
 
 > **Out of scope:** Online Services module.
