@@ -65,22 +65,22 @@ export async function POST(
       const endDate = new Date(leaveRequest.endDate).toLocaleDateString("en-IN");
 
       if (parsed.data.action === "approved") {
-        await notifyLeaveApproved({
+        notifyLeaveApproved({
             employeeId: employee.id,
             leaveType: leaveType.name,
             startDate,
             endDate,
-        });
+        }).catch(err => console.error("Notify err:", err));
     }
 
     if (parsed.data.action === "rejected") {
-        await notifyLeaveRejected({
+        notifyLeaveRejected({
             employeeId: employee.id,
             leaveType: leaveType.name,
             startDate,
             endDate,
             reason: parsed.data.comment ?? undefined,
-        });
+        }).catch(err => console.error("Notify err:", err));
     }
     }
 

@@ -1,28 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-
-function isWeekend(date: Date): boolean {
-  const day = date.getDay()
-  return day === 0 || day === 6
-}
-
-function calculateLeaveDays(
-  startDate: Date,
-  endDate: Date,
-  holidays: Date[]
-): number {
-  let count = 0
-  const current = new Date(startDate)
-  const holidayStrings = holidays.map((h) => h.toDateString())
-
-  while (current <= endDate) {
-    if (!isWeekend(current) && !holidayStrings.includes(current.toDateString())) {
-      count++
-    }
-    current.setDate(current.getDate() + 1)
-  }
-
-  return count
-}
+import { calculateLeaveDays } from '@/lib/utils'
 
 function hasLeaveOverlap(
   existingLeaves: Array<{ startDate: Date; endDate: Date }>,
@@ -45,52 +22,90 @@ function getRemainingBalance(
 describe('Leave Day Calculation', () => {
   it('counts weekdays between two dates', () => {
     expect(
-      calculateLeaveDays(
-        new Date('2026-04-06'),
-        new Date('2026-04-10'),
-        []
-      )
+      calculateLeaveDays({
+        startDate: new Date('2026-04-06'), // Monday
+        endDate: new Date('2026-04-10'), // Friday
+        dayTime: 'full_day',
+        holidays: []
+      })
     ).toBe(5)
   })
 
   it('excludes weekends', () => {
     expect(
-      calculateLeaveDays(
-        new Date('2026-04-06'),
-        new Date('2026-04-13'),
-        []
-      )
+      calculateLeaveDays({
+        startDate: new Date('2026-04-06'), // Monday
+        endDate: new Date('2026-04-13'), // Monday
+        dayTime: 'full_day',
+        holidays: []
+      })
     ).toBe(6)
   })
 
   it('excludes holidays', () => {
-    const holidays = [new Date('2026-04-08')]
+    const holidays = [new Date('2026-04-08')] // Wednesday
     expect(
-      calculateLeaveDays(
-        new Date('2026-04-06'),
-        new Date('2026-04-10'),
+      calculateLeaveDays({
+        startDate: new Date('2026-04-06'), // Monday
+        endDate: new Date('2026-04-10'), // Friday
+        dayTime: 'full_day',
         holidays
-      )
+      })
     ).toBe(4)
   })
 
   it('returns 1 for a single weekday', () => {
     expect(
-      calculateLeaveDays(
-        new Date('2026-04-07'),
-        new Date('2026-04-07'),
-        []
-      )
+      calculateLeaveDays({
+        startDate: new Date('2026-04-07'), // Tuesday
+        endDate: new Date('2026-04-07'), // Tuesday
+        dayTime: 'full_day',
+        holidays: []
+      })
     ).toBe(1)
   })
 
   it('returns 0 for a weekend-only range', () => {
     expect(
-      calculateLeaveDays(
-        new Date('2026-04-11'),
-        new Date('2026-04-12'),
-        []
-      )
+      calculateLeaveDays({
+        startDate: new Date('2026-04-11'), // Saturday
+        endDate: new Date('2026-04-12'), // Sunday
+        dayTime: 'full_day',
+        holidays: []
+      })
+    ).toBe(0)
+  })
+
+  it('handles half days properly', () => {
+    expect(
+      calculateLeaveDays({
+        startDate: new Date('2026-04-07'), // Tuesday
+        endDate: new Date('2026-04-07'), // Tuesday
+        dayTime: 'forenoon',
+        holidays: []
+      })
+    ).toBe(0.5)
+  })
+
+  it('handles invalid dates', () => {
+    expect(
+      calculateLeaveDays({
+        startDate: new Date('invalid date'),
+        endDate: new Date('2026-04-07'),
+        dayTime: 'full_day',
+        holidays: []
+      })
+    ).toBe(0)
+  })
+
+  it('returns 0 if end date is before start date', () => {
+    expect(
+      calculateLeaveDays({
+        startDate: new Date('2026-04-10'), // Friday
+        endDate: new Date('2026-04-06'), // Monday
+        dayTime: 'full_day',
+        holidays: []
+      })
     ).toBe(0)
   })
 })

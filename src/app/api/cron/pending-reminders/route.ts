@@ -4,6 +4,10 @@ import { createNotification } from '@/lib/notifications'
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
+  
+  if (!process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
 
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -30,6 +34,7 @@ export async function POST(req: NextRequest) {
     const assignment = await db.teamAssignment.findFirst({
       where: {
         employeeId: request.userId,
+        active: true,
       },
       select: {
         managerId: true,

@@ -59,9 +59,9 @@ describe('LoginPage', () => {
   it('renders email, password, and sign in button', async () => {
     render(<LoginPage />)
 
-    expect(await screen.findByLabelText(/email address/i)).not.toBeNull()
-    expect(screen.getByLabelText(/^password/i)).not.toBeNull()
-    expect(screen.getByRole('button', { name: /sign in/i })).not.toBeNull()
+    expect(await screen.findByLabelText(/email address/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^password/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 
   it('toggles password visibility', async () => {

@@ -50,7 +50,7 @@ npm install
 
 ### 2. Configure environment
 
-```bash
+```cmd
 copy .env.example .env
 ```
 
@@ -103,7 +103,7 @@ npm run test:coverage    # With coverage report
 
 If you don't have PostgreSQL installed locally:
 
-```bash
+```cmd
 docker run --name lms-postgres ^
   -e POSTGRES_USER=postgres ^
   -e POSTGRES_PASSWORD=password ^
@@ -130,7 +130,7 @@ prisma/
 
 ## Database Backup
 
-```bash
+```cmd
 # Backup
 pg_dump -U postgres -d lms_db -F c -f backup_%date:~-4,4%%date:~-10,2%%date:~-7,2%.dump
 

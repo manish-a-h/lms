@@ -30,6 +30,15 @@ export async function sendEmail({ to, subject, html }: SendEmailInput) {
   })
 }
 
+function escapeHtml(unsafe: string) {
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function leaveApprovedEmailTemplate(params: {
   employeeName: string
   leaveType: string
@@ -39,11 +48,11 @@ export function leaveApprovedEmailTemplate(params: {
   return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #222;">
       <h2 style="color: #01696f;">Leave Approved</h2>
-      <p>Hello ${params.employeeName},</p>
+      <p>Hello ${escapeHtml(params.employeeName)},</p>
       <p>
-        Your <strong>${params.leaveType}</strong> leave request from
-        <strong>${params.startDate}</strong> to
-        <strong>${params.endDate}</strong> has been approved.
+        Your <strong>${escapeHtml(params.leaveType)}</strong> leave request from
+        <strong>${escapeHtml(params.startDate)}</strong> to
+        <strong>${escapeHtml(params.endDate)}</strong> has been approved.
       </p>
       <p>Regards,<br />LMS Team</p>
     </div>
@@ -60,15 +69,15 @@ export function leaveRejectedEmailTemplate(params: {
   return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #222;">
       <h2 style="color: #a12c7b;">Leave Request Update</h2>
-      <p>Hello ${params.employeeName},</p>
+      <p>Hello ${escapeHtml(params.employeeName)},</p>
       <p>
-        Your <strong>${params.leaveType}</strong> leave request from
-        <strong>${params.startDate}</strong> to
-        <strong>${params.endDate}</strong> was not approved.
+        Your <strong>${escapeHtml(params.leaveType)}</strong> leave request from
+        <strong>${escapeHtml(params.startDate)}</strong> to
+        <strong>${escapeHtml(params.endDate)}</strong> was not approved.
       </p>
       ${
         params.reason
-          ? `<p><strong>Reason:</strong> ${params.reason}</p>`
+          ? `<p><strong>Reason:</strong> ${escapeHtml(params.reason)}</p>`
           : ''
       }
       <p>Regards,<br />LMS Team</p>

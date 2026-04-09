@@ -32,6 +32,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  await markAllAsRead(session.sub)
-  return NextResponse.json({ success: true })
+  try {
+    await markAllAsRead(session.sub)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to mark notifications as read' }, { status: 500 })
+  }
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "./notification-bell";
 
 type TopNavProps = {
   userName: string;
@@ -45,10 +46,7 @@ export function TopNav({
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="relative bg-white/55" aria-label="Notifications">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-destructive" />
-        </Button>
+        <NotificationBell />
 
         <div className="flex items-center gap-2 rounded-full bg-muted/75 px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
           <div

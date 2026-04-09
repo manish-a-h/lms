@@ -60,9 +60,9 @@ export function Form16Layout({
           {years.length > 0 && (
             <div className="flex items-center gap-2">
               {!watermarkText && (
-                <label htmlFor="form16-year" className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   FY:
-                </label>
+                </span>
               )}
               {years.map((y) => (
                 <Link

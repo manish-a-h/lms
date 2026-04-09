@@ -18,29 +18,29 @@ export async function POST(
   try {
     const leaveRequest = await cancelLeaveRequestForUser(sessionUser.sub, requestId);
 
-    const employee = await db.user.findUnique({
-      where: { id: sessionUser.sub },
-      select: { name: true },
-    });
+    const [employee, assignment] = await Promise.all([
+      db.user.findUnique({
+        where: { id: sessionUser.sub },
+        select: { name: true },
+      }),
+      db.teamAssignment.findFirst({
+        where: { employeeId: sessionUser.sub },
+        select: { managerId: true },
+      }),
+    ]);
 
-    const assignment = await db.teamAssignment.findFirst({
-      where: { employeeId: sessionUser.sub },
-      select: { managerId: true },
-    });
-
-    const leaveType = await db.leaveType.findUnique({
-      where: { id: leaveRequest.leaveTypeId },
-      select: { name: true },
-    });
-
-    if (employee && assignment?.managerId && leaveType) {
-      await notifyLeaveCancelled({
-        managerId: assignment.managerId,
-        employeeName: employee.name,
-        leaveType: leaveType.name,
-        startDate: new Date(leaveRequest.startDate).toLocaleDateString("en-IN"),
-        endDate: new Date(leaveRequest.endDate).toLocaleDateString("en-IN"),
-      });
+    if (employee && assignment?.managerId && (leaveRequest as any).leaveType) {
+      try {
+        await notifyLeaveCancelled({
+          managerId: assignment.managerId,
+          employeeName: employee.name,
+          leaveType: (leaveRequest as any).leaveType.name,
+          startDate: new Date(leaveRequest.startDate).toLocaleDateString("en-IN"),
+          endDate: new Date(leaveRequest.endDate).toLocaleDateString("en-IN"),
+        });
+      } catch (error) {
+        console.error("Failed to notify leave cancelled:", error);
+      }
     }
 
     return NextResponse.json({ ok: true, leaveRequest });

@@ -34,6 +34,7 @@ export function SalaryFilter({ currentYear }: { currentYear: number }) {
           id="salary-year"
           name="salary-year"
           defaultValue={year}
+          key={year}
           className="h-9 rounded-md bg-white/70 px-3 text-sm ring-1 ring-black/5 focus:ring-2 focus:ring-ring outline-none"
         >
           {years.map((y) => (

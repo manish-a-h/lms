@@ -32,16 +32,13 @@ interface CalendarData {
   activeUsersCount: number;
 }
 
-interface RawLeave {
+interface RawLeave extends Omit<CalendarLeave, "startDate" | "endDate"> {
   startDate: string;
   endDate: string;
-  status: string;
-  user: { name: string };
 }
 
-interface RawHoliday {
+interface RawHoliday extends Omit<CalendarHoliday, "date"> {
   date: string;
-  name: string;
 }
 
 export function HrCalendar() {
@@ -55,17 +52,20 @@ export function HrCalendar() {
     try {
       const res = await fetch(`/api/admin/calendar?year=${date.getFullYear()}&month=${date.getMonth() + 1}`);
       if (res.ok) {
-        const json = await res.json();
-        json.leaves = json.leaves.map((l: RawLeave) => ({
-          ...l,
-          startDate: new Date(l.startDate),
-          endDate: new Date(l.endDate),
-        }));
-        json.holidays = json.holidays.map((h: RawHoliday) => ({
-          ...h,
-          date: new Date(h.date),
-        }));
-        setData(json);
+        const json = await res.json() as { activeUsersCount: number, leaves: RawLeave[], holidays: RawHoliday[] };
+        const mapped: CalendarData = {
+          activeUsersCount: json.activeUsersCount,
+          leaves: json.leaves.map((l) => ({
+            ...l,
+            startDate: new Date(l.startDate),
+            endDate: new Date(l.endDate),
+          })),
+          holidays: json.holidays.map((h) => ({
+            ...h,
+            date: new Date(h.date),
+          })),
+        };
+        setData(mapped);
       }
     } catch (err) {
       console.error(err);
@@ -92,12 +92,10 @@ export function HrCalendar() {
 
   const getDayInfo = (day: number) => {
     if (!data) return { leaves: [] as CalendarLeave[], holiday: null as CalendarHoliday | null };
-    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-      .toISOString()
-      .split("T")[0];
+    const localDateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
     const holiday = data.holidays.find(
-      (h) => h.date.toISOString().split("T")[0] === dateStr
+      (h) => `${h.date.getFullYear()}-${String(h.date.getMonth() + 1).padStart(2, '0')}-${String(h.date.getDate()).padStart(2, '0')}` === localDateKey
     ) ?? null;
 
     const targetTime = new Date(

@@ -14,7 +14,14 @@ export async function PATCH(
 
   const { id } = await context.params
 
-  await markAsRead(id, session.sub)
+  const result = await markAsRead(id, session.sub)
 
-  return NextResponse.json({ success: true })
+  if (result.count > 0) {
+    return NextResponse.json({ success: true, count: result.count })
+  }
+  
+  return NextResponse.json(
+    { success: false, message: 'No notification found or already read' },
+    { status: 404 }
+  )
 }

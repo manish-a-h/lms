@@ -130,9 +130,10 @@ model LeaveRequest {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveType    LeaveType     @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
-  approvalLogs ApprovalLog[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType     LeaveType      @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+  approvalLogs  ApprovalLog[]
+  notifications Notification[]
 }
 
 // ─────────────────────────────────────────────
@@ -301,16 +302,19 @@ enum NotificationType {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      NotificationType
-  title     String
-  message   String
-  isRead    Boolean          @default(false)
-  link      String?
-  createdAt DateTime         @default(now())
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveRequestId String?
+  leaveRequest   LeaveRequest?    @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  type           NotificationType
+  title          String
+  message        String
+  isRead         Boolean          @default(false)
+  link           String?
+  createdAt      DateTime         @default(now())
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
+  @@index([leaveRequestId])
 }

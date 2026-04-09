@@ -83,14 +83,24 @@ export async function getSalarySlipDetail(userId: string, slipId: string) {
 
   if (!slip) return null;
 
+  const derivedLineItems = slip.lineItems.length > 0 ? slip.lineItems.map((li) => ({
+    ...li,
+    amount: Number(li.amount),
+  })) : [
+    {
+      id: "derived-basic",
+      salarySlipId: slip.id,
+      componentName: "Basic Salary",
+      amount: Number(slip.grossSalary),
+      type: SalaryComponentType.earning,
+    }
+  ];
+
   return {
     ...slip,
     grossSalary: Number(slip.grossSalary),
     netSalary: Number(slip.netSalary),
-    lineItems: slip.lineItems.map((li) => ({
-      ...li,
-      amount: Number(li.amount),
-    })),
+    lineItems: derivedLineItems,
   };
 }
 
@@ -122,14 +132,24 @@ export async function getSalarySlipByMonthYear(
 
   if (!slip) return null;
 
+  const derivedLineItems = slip.lineItems.length > 0 ? slip.lineItems.map((li) => ({
+    ...li,
+    amount: Number(li.amount),
+  })) : [
+    {
+      id: "derived-basic",
+      salarySlipId: slip.id,
+      componentName: "Basic Salary",
+      amount: Number(slip.grossSalary),
+      type: SalaryComponentType.earning,
+    }
+  ];
+
   return {
     ...slip,
     grossSalary: Number(slip.grossSalary),
     netSalary: Number(slip.netSalary),
-    lineItems: slip.lineItems.map((li) => ({
-      ...li,
-      amount: Number(li.amount),
-    })),
+    lineItems: derivedLineItems,
   };
 }
 
@@ -173,7 +193,17 @@ export async function getForm16Data(userId: string, startYear: number) {
     totalGross += Number(slip.grossSalary);
     totalNet += Number(slip.netSalary);
 
-    for (const item of slip.lineItems) {
+    const effectiveLineItems = slip.lineItems.length > 0 ? slip.lineItems : [
+      {
+        id: "derived-basic",
+        salarySlipId: slip.id,
+        componentName: "Basic Salary",
+        amount: Number(slip.grossSalary),
+        type: SalaryComponentType.earning,
+      }
+    ];
+
+    for (const item of effectiveLineItems) {
       const amount = Number(item.amount);
       const existing = componentTotals.get(item.componentName);
 

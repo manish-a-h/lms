@@ -12,27 +12,13 @@
 ## Commit Format
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
-# Contributing to LMS
-
-## Branch Naming
-
-| Type | Pattern | Example |
-|------|---------|---------|
-| Feature | `feat/<short-description>` | `feat/leave-apply-form` |
-| Bug fix | `fix/<short-description>` | `fix/balance-calculation` |
-| Chore / docs | `chore/<short-description>` | `chore/update-readme` |
-| Testing | `test/<short-description>` | `test/leave-unit-tests` |
-
-## Commit Format
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 
 **Allowed types:** `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `style`, `perf`
 
 ## Pull Request Rules
 
-1. Branch from `develop`, **not** `main`
+1. Branch from `main`
 2. PR title must follow the commit format above
 3. All CI checks (lint, typecheck, test, build) must pass before merging
 4. At least **one reviewer approval** is required
