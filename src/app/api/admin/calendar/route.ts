@@ -1,19 +1,14 @@
-import { NextResponse } from "next/server";
-import { verifyAccessToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/session";
 import { getCalendarData } from "@/lib/data/admin";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     try {
-        const authHeader = request.headers.get("authorization") || request.headers.get("cookie");
-        // Just a fast pass verifying admin bounds using cookie parse here, or relies on Next.js setup
-        // the verifyAccessToken needs the raw JWT:
-        const tokenMatch = authHeader?.match(/access_token=([^;]+)/);
-        const token = tokenMatch ? tokenMatch[1] : null;
-
-        if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const sessionUser = await verifyAccessToken(token).catch(() => null);
-        if (!sessionUser || sessionUser.role !== "hr_admin") {
+        const sessionUser = await getSession(request);
+        if (!sessionUser) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (sessionUser.role !== "hr_admin") {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -25,7 +20,14 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: "Missing year or month" }, { status: 400 });
         }
 
-        const data = await getCalendarData(parseInt(yearStr), parseInt(monthStr));
+        const year = parseInt(yearStr, 10);
+        const month = parseInt(monthStr, 10);
+
+        if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12 || year < 2000 || year > 2100) {
+            return NextResponse.json({ error: "Invalid year or month" }, { status: 400 });
+        }
+
+        const data = await getCalendarData(year, month);
 
         return NextResponse.json(data);
     } catch (error) {

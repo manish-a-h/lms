@@ -44,12 +44,23 @@ export async function updateProfile(
     dateOfJoin?: string;
   }
 ) {
+  const normalizedEmail = data.email.trim().toLowerCase();
+
+  // Check email uniqueness before update
+  const existingUser = await db.user.findFirst({
+    where: { email: normalizedEmail, id: { not: userId } },
+    select: { id: true },
+  });
+  if (existingUser) {
+    throw new Error("Validation error: This email address is already in use.");
+  }
+
   return db.$transaction(async (tx) => {
     const updated = await tx.user.update({
       where: { id: userId },
       data: {
         name: data.name.trim(),
-        email: data.email.trim().toLowerCase(),
+        email: normalizedEmail,
         nitteEmail: data.nitteEmail?.trim() || null,
         contactNo: data.contactNo?.trim() || null,
         panNo: data.panNo?.trim().toUpperCase() || null,

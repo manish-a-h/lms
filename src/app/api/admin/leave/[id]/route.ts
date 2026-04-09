@@ -1,21 +1,22 @@
-import { NextResponse } from "next/server";
-import { verifyAccessToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/session";
 import { db } from "@/lib/db";
 import { LeaveStatus, ApprovalAction } from "@/generated/prisma/client";
+import {
+    notifyLeaveApproved,
+    notifyLeaveRejected,
+} from "@/lib/notifications";
 
 export async function PATCH(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const authHeader = request.headers.get("authorization") || request.headers.get("cookie");
-        const tokenMatch = authHeader?.match(/access_token=([^;]+)/);
-        const token = tokenMatch ? tokenMatch[1] : null;
-
-        if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const sessionUser = await verifyAccessToken(token).catch(() => null);
-        if (!sessionUser || sessionUser.role !== "hr_admin") {
+        const sessionUser = await getSession(request);
+        if (!sessionUser) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (sessionUser.role !== "hr_admin") {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -72,6 +73,40 @@ export async function PATCH(
 
             return req;
         });
+
+        // Send notification to the employee
+        const employee = await db.user.findUnique({
+            where: { id: targetRequest.userId },
+            select: { id: true },
+        });
+        const leaveType = await db.leaveType.findUnique({
+            where: { id: targetRequest.leaveTypeId },
+            select: { name: true },
+        });
+
+        if (employee && leaveType) {
+            const startDate = new Date(targetRequest.startDate).toLocaleDateString("en-IN");
+            const endDate = new Date(targetRequest.endDate).toLocaleDateString("en-IN");
+
+            if (action === "approve") {
+                notifyLeaveApproved({
+                    employeeId: employee.id,
+                    leaveType: leaveType.name,
+                    startDate,
+                    endDate,
+                }).catch(err => console.error("Notify err:", err));
+            }
+
+            if (action === "reject") {
+                notifyLeaveRejected({
+                    employeeId: employee.id,
+                    leaveType: leaveType.name,
+                    startDate,
+                    endDate,
+                    reason: comments ?? undefined,
+                }).catch(err => console.error("Notify err:", err));
+            }
+        }
 
         return NextResponse.json(updatedRequest);
     } catch (error) {

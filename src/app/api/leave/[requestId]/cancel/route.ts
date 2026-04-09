@@ -29,12 +29,12 @@ export async function POST(
       }),
     ]);
 
-    if (employee && assignment?.managerId && (leaveRequest as any).leaveType) {
+    if (employee && assignment?.managerId && leaveRequest.leaveType) {
       try {
         await notifyLeaveCancelled({
           managerId: assignment.managerId,
           employeeName: employee.name,
-          leaveType: (leaveRequest as any).leaveType.name,
+          leaveType: leaveRequest.leaveType.name,
           startDate: new Date(leaveRequest.startDate).toLocaleDateString("en-IN"),
           endDate: new Date(leaveRequest.endDate).toLocaleDateString("en-IN"),
         });

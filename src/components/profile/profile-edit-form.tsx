@@ -32,7 +32,6 @@ export function ProfileEditForm({ initialData }: ProfileEditFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<ProfileData>(initialData);
   const [submitting, setSubmitting] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   function handleChange(field: keyof ProfileData, value: string) {
@@ -72,7 +71,6 @@ export function ProfileEditForm({ initialData }: ProfileEditFormProps) {
       }
 
       toast.success("Profile updated successfully.");
-      setIsNavigating(true);
       router.push("/profile");
       router.refresh();
       // Skip finally block to prevent button re-enabling during navigation
@@ -326,16 +324,13 @@ export function ProfileEditForm({ initialData }: ProfileEditFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => {
-             setIsNavigating(true);
-             router.push("/profile");
-          }}
-          disabled={submitting || isNavigating}
+          onClick={() => router.push("/profile")}
+          disabled={submitting}
         >
           <X className="h-4 w-4" />
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting || isNavigating}>
+        <Button type="submit" disabled={submitting}>
           {submitting ? <Loader2 className="animate-spin" /> : <Save className="h-4 w-4" />}
           {submitting ? "Saving…" : "Save Changes"}
         </Button>

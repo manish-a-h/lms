@@ -1,7 +1,5 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { verifyAccessToken } from "@/lib/auth";
 import { getForm16Data } from "@/lib/data/salary";
 import { Form16Layout } from "@/components/salary/form16-layout";

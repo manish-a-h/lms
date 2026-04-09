@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarDayModal } from "./calendar-day-modal";
+import { formatDateKey } from "@/lib/utils";
 
 interface CalendarLeave {
   id: string;
@@ -92,17 +93,14 @@ export function HrCalendar() {
 
   const getDayInfo = (day: number) => {
     if (!data) return { leaves: [] as CalendarLeave[], holiday: null as CalendarHoliday | null };
-    const localDateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const localDateKey = formatDateKey(targetDate);
 
     const holiday = data.holidays.find(
-      (h) => `${h.date.getFullYear()}-${String(h.date.getMonth() + 1).padStart(2, '0')}-${String(h.date.getDate()).padStart(2, '0')}` === localDateKey
+      (h) => formatDateKey(h.date) === localDateKey
     ) ?? null;
 
-    const targetTime = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      day
-    ).getTime();
+    const targetTime = targetDate.getTime();
 
     const intersectingLeaves = data.leaves.filter((l) => {
       const start = new Date(

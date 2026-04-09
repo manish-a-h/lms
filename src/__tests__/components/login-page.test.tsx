@@ -21,15 +21,13 @@ jest.mock('next/link', () => {
     default: ({
       children,
       href,
-      scroll: _scroll,
-      ...props
     }: {
       children: React.ReactNode
       href: string
       scroll?: boolean
       [key: string]: unknown
     }) => (
-      <a href={href} {...props}>
+      <a href={href}>
         {children}
       </a>
     ),
@@ -40,15 +38,13 @@ jest.mock('@/components/auth/auth-transition-link', () => ({
   AuthTransitionLink: ({
     children,
     href,
-    scroll: _scroll,
-    ...props
   }: {
     children: React.ReactNode
     href: string
     scroll?: boolean
     [key: string]: unknown
   }) => (
-    <a href={href} {...props}>
+    <a href={href}>
       {children}
     </a>
   ),

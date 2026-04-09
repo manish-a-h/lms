@@ -134,6 +134,10 @@ model LeaveRequest {
   leaveType     LeaveType      @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
   approvalLogs  ApprovalLog[]
   notifications Notification[]
+
+  @@index([userId, status])
+  @@index([userId, appliedOn])
+  @@index([leaveTypeId])
 }
 
 // ─────────────────────────────────────────────
@@ -222,6 +226,8 @@ model SalaryComponent {
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
 }
 
 model SalarySlip {

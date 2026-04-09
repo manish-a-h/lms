@@ -41,28 +41,25 @@ export async function POST(request: NextRequest) {
       dutyIncharge: parsed.data.dutyIncharge,
     });
 
-    try {
-      (async () => {
-        const [employee, leaveType, assignment] = await Promise.all([
-          db.user.findUnique({ where: { id: sessionUser.sub }, select: { id: true, name: true } }),
-          db.leaveType.findUnique({ where: { id: parsed.data.leaveTypeId }, select: { name: true } }),
-          db.teamAssignment.findFirst({ where: { employeeId: sessionUser.sub, active: true }, select: { managerId: true } })
-        ]);
-  
-        if (employee && leaveType && assignment?.managerId) {
-          await notifyLeaveSubmitted({
-            employeeId: employee.id,
-            managerId: assignment.managerId,
-            employeeName: employee.name,
-            leaveType: leaveType.name,
-            startDate: new Date(parsed.data.startDate).toLocaleDateString("en-IN"),
-            endDate: new Date(parsed.data.endDate).toLocaleDateString("en-IN"),
-          });
-        }
-      })().catch(err => console.error("Post-create hook error:", err));
-    } catch (e) {
-      // Ignored synchronous errors from the async block creation
-    }
+    // Fire-and-forget: send notifications without blocking the response
+    (async () => {
+      const [employee, leaveType, assignment] = await Promise.all([
+        db.user.findUnique({ where: { id: sessionUser.sub }, select: { id: true, name: true } }),
+        db.leaveType.findUnique({ where: { id: parsed.data.leaveTypeId }, select: { name: true } }),
+        db.teamAssignment.findFirst({ where: { employeeId: sessionUser.sub, active: true }, select: { managerId: true } })
+      ]);
+
+      if (employee && leaveType && assignment?.managerId) {
+        await notifyLeaveSubmitted({
+          employeeId: employee.id,
+          managerId: assignment.managerId,
+          employeeName: employee.name,
+          leaveType: leaveType.name,
+          startDate: new Date(parsed.data.startDate).toLocaleDateString("en-IN"),
+          endDate: new Date(parsed.data.endDate).toLocaleDateString("en-IN"),
+        });
+      }
+    })().catch(err => console.error("Post-create hook error:", err));
 
     return NextResponse.json({ ok: true, leaveRequest }, { status: 201 });
   } catch (error) {
