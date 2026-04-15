@@ -50,12 +50,20 @@ export function CalendarDayModal({
   const handleAction = async (id: string, action: "approve" | "reject") => {
     setProcessingId(id);
     try {
-      const res = await fetch(`/api/admin/leave/${id}`, {
-        method: "PATCH",
+      const res = await fetch(`/api/leave/approvals/${id}`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, comments: `Actioned from Admin Calendar` }),
+        body: JSON.stringify({
+          action: action === "approve" ? "approved" : "rejected",
+          comment: "Actioned from shared calendar",
+        }),
       });
-      if (!res.ok) throw new Error("Failed to update");
+
+      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) {
+        throw new Error(payload?.error ?? "Failed to update");
+      }
+
       toast.success(`Leave request ${action}d successfully`);
       onLeaveUpdated();
     } catch {

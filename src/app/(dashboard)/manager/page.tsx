@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { AlertTriangle, ClipboardList, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CalendarDays, ClipboardList, ShieldCheck } from "lucide-react";
+import { HrCalendar } from "@/components/admin/hr-calendar";
 import { ManagerApprovalActions } from "@/components/leave/manager-approval-actions";
 import { LeaveStatusBadge } from "@/components/leave/leave-status-badge";
 import { verifyAccessToken } from "@/lib/auth";
@@ -25,7 +26,7 @@ export default async function ManagerPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-8">
       <div className="atelier-panel-muted flex flex-col gap-3 p-5 md:flex-row md:items-end md:justify-between md:p-6">
         <div>
           <p className="eyebrow-label">Approval desk</p>
@@ -53,6 +54,19 @@ export default async function ManagerPage() {
           </p>
         </div>
       </div>
+
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-5 w-5 text-[#2E75B6]" />
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Team availability calendar</h2>
+            <p className="text-sm text-muted-foreground">
+              Shared visibility for managers and HR admins across leave and holiday schedules.
+            </p>
+          </div>
+        </div>
+        <HrCalendar />
+      </section>
 
       <section className="atelier-panel p-6">
         <div className="mb-4 flex items-center gap-2">

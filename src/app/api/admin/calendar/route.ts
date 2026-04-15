@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         if (!sessionUser) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        if (sessionUser.role !== "hr_admin") {
+        if (!["hr_admin", "manager"].includes(sessionUser.role)) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

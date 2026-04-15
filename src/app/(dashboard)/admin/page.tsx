@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { Activity, CalendarDays, FileBarChart2, ShieldCheck, Users } from "lucide-react";
 import { verifyAccessToken } from "@/lib/auth";
 import { getAdminOverview } from "@/lib/data/admin";
-import { HrCalendar } from "@/components/admin/hr-calendar";
 import { AccessManagementPanel } from "@/components/admin/access-management-panel";
 
 export default async function AdminPage() {
@@ -61,49 +60,6 @@ export default async function AdminPage() {
           <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Approved emails</p>
           <p className="mt-2 text-3xl font-bold text-foreground">{overview.approvedEmails.filter((item) => item.isActive).length}</p>
         </div>
-      </section>
-
-      <section className="grid items-start gap-6 2xl:grid-cols-[1.55fr_0.95fr]">
-        <div className="min-w-0">
-          <HrCalendar />
-        </div>
-
-        <aside className="space-y-6">
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-[#2E75B6]" />
-              <h2 className="text-lg font-semibold text-foreground">Pending approvals</h2>
-            </div>
-
-            {overview.pendingApprovals.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No leave requests are waiting for review right now.</p>
-            ) : (
-              <div className="space-y-3">
-                {overview.pendingApprovals.slice(0, 5).map((request) => (
-                  <div key={request.id} className="atelier-panel-muted p-3 text-sm">
-                    <p className="font-medium text-foreground">{request.user.name}</p>
-                    <p className="text-muted-foreground">{request.leaveType.name} • {request.user.department ?? "No department"}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {new Date(request.startDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} – {new Date(request.endDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <FileBarChart2 className="h-5 w-5 text-[#2E75B6]" />
-              <h2 className="text-lg font-semibold text-foreground">Admin notes</h2>
-            </div>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>• Add approved emails before a user signs in with Teams.</li>
-              <li>• Role changes here update the Teams access role mapping too.</li>
-              <li>• Blocked emails can no longer complete Microsoft Teams login.</li>
-            </ul>
-          </div>
-        </aside>
       </section>
 
       <AccessManagementPanel approvedEmails={overview.approvedEmails} users={overview.users} />
