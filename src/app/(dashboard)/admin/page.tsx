@@ -22,16 +22,23 @@ export default async function AdminPage() {
   const overview = await getAdminOverview();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="atelier-panel-muted p-5 md:p-6">
+    <div className="mx-auto max-w-7xl space-y-8">
+      <section className="atelier-panel-muted p-5 md:p-6">
         <p className="eyebrow-label">HR command center</p>
-        <h1 className="editorial-title text-3xl font-bold text-foreground">HR admin overview</h1>
-        <p className="text-sm text-muted-foreground">
-          User management, leave policies, holiday setup, reports, and activity logs now have a starter admin home.
-        </p>
-      </div>
+        <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="editorial-title text-3xl font-bold text-foreground">HR admin overview</h1>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              Manage access, review leave activity, maintain holidays, and keep the workforce dashboard organized from one place.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white/80 px-4 py-3 text-sm text-muted-foreground ring-1 ring-black/5">
+            {overview.pendingApprovals.length} pending request{overview.pendingApprovals.length === 1 ? "" : "s"}
+          </div>
+        </div>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         <div className="atelier-panel p-5">
           <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Total users</p>
           <p className="mt-2 flex items-center gap-2 text-3xl font-bold text-foreground">
@@ -51,24 +58,58 @@ export default async function AdminPage() {
           <p className="mt-2 text-3xl font-bold text-foreground">{overview.leaveTypes.length}</p>
         </div>
         <div className="atelier-panel p-5">
-          <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Pending approvals</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{overview.pendingApprovals.length}</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Approved emails</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{overview.approvedEmails.filter((item) => item.isActive).length}</p>
         </div>
-      </div>
+      </section>
 
-      <div className="mt-8">
-        <HrCalendar />
-      </div>
+      <section className="grid items-start gap-6 2xl:grid-cols-[1.55fr_0.95fr]">
+        <div className="min-w-0">
+          <HrCalendar />
+        </div>
 
-      <div className="mt-8">
-        <AccessManagementPanel
-          approvedEmails={overview.approvedEmails}
-          users={overview.users}
-        />
-      </div>
+        <aside className="space-y-6">
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-[#2E75B6]" />
+              <h2 className="text-lg font-semibold text-foreground">Pending approvals</h2>
+            </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr] mt-8">
-        <section className="space-y-6">
+            {overview.pendingApprovals.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No leave requests are waiting for review right now.</p>
+            ) : (
+              <div className="space-y-3">
+                {overview.pendingApprovals.slice(0, 5).map((request) => (
+                  <div key={request.id} className="atelier-panel-muted p-3 text-sm">
+                    <p className="font-medium text-foreground">{request.user.name}</p>
+                    <p className="text-muted-foreground">{request.leaveType.name} • {request.user.department ?? "No department"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {new Date(request.startDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} – {new Date(request.endDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <FileBarChart2 className="h-5 w-5 text-[#2E75B6]" />
+              <h2 className="text-lg font-semibold text-foreground">Admin notes</h2>
+            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>• Add approved emails before a user signs in with Teams.</li>
+              <li>• Role changes here update the Teams access role mapping too.</li>
+              <li>• Blocked emails can no longer complete Microsoft Teams login.</li>
+            </ul>
+          </div>
+        </aside>
+      </section>
+
+      <AccessManagementPanel approvedEmails={overview.approvedEmails} users={overview.users} />
+
+      <section className="grid items-start gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-6">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-[#2E75B6]" />
@@ -92,7 +133,7 @@ export default async function AdminPage() {
               <h2 className="text-lg font-semibold text-foreground">Upcoming public holidays</h2>
             </div>
             <div className="space-y-3">
-              {overview.holidays.slice(0, 3).map((holiday) => (
+              {overview.holidays.slice(0, 4).map((holiday) => (
                 <div key={holiday.id} className="atelier-panel-muted p-3 text-sm">
                   <p className="font-medium text-foreground">{holiday.name}</p>
                   <p className="text-muted-foreground">
@@ -106,6 +147,32 @@ export default async function AdminPage() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <Activity className="h-5 w-5 text-[#2E75B6]" />
+              <h2 className="text-lg font-semibold text-foreground">Recent activity log</h2>
+            </div>
+
+            {overview.recentActivity.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Activity entries will appear here as leave, user, and policy actions are performed.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {overview.recentActivity.map((entry) => (
+                  <div key={entry.id} className="atelier-panel-muted p-4 text-sm">
+                    <p className="font-medium text-foreground">{entry.message}</p>
+                    <p className="text-muted-foreground">
+                      {entry.actor?.name ?? "System"} • {new Date(entry.createdAt).toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
@@ -113,34 +180,10 @@ export default async function AdminPage() {
               <h2 className="text-lg font-semibold text-foreground">Reports</h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Date-filtered reports and export flows will build on top of this admin starter view next.
+              Date-filtered reporting and export flows can now build cleanly on this improved admin layout.
             </p>
           </div>
-        </section>
-      </div>
-
-      <section className="rounded-2xl border bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <Activity className="h-5 w-5 text-[#2E75B6]" />
-          <h2 className="text-lg font-semibold text-foreground">Recent activity log</h2>
         </div>
-
-        {overview.recentActivity.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Activity entries will appear here as leave, user, and policy actions are performed.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {overview.recentActivity.map((entry) => (
-              <div key={entry.id} className="atelier-panel-muted p-4 text-sm">
-                <p className="font-medium text-foreground">{entry.message}</p>
-                <p className="text-muted-foreground">
-                  {entry.actor?.name ?? "System"} • {new Date(entry.createdAt).toLocaleString("en-IN")}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
       </section>
     </div>
   );

@@ -35,18 +35,25 @@ const ROLE_OPTIONS = [
 ] as const;
 
 export function AccessManagementPanel({ approvedEmails, users }: AccessManagementPanelProps) {
+  const activeCount = approvedEmails.filter((entry) => entry.isActive).length;
+  const blockedCount = approvedEmails.length - activeCount;
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-      <section className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="grid items-start gap-6 2xl:grid-cols-[0.95fr_1.25fr]">
+      <section className="min-w-0 overflow-hidden rounded-2xl border bg-white p-6 shadow-sm">
         <div className="mb-5">
           <p className="eyebrow-label">Teams access control</p>
           <h2 className="text-xl font-semibold text-foreground">Approved email list</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Add the email address first, choose the role, and only approved addresses will be able to finish Microsoft Teams sign-in.
           </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{activeCount} allowed</span>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">{blockedCount} blocked</span>
+          </div>
         </div>
 
-        <form action={addApprovedEmailAction} className="mb-6 grid gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-4 md:grid-cols-[1.6fr_1fr_auto] md:items-end">
+        <form action={addApprovedEmailAction} className="mb-6 grid gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-4 lg:grid-cols-[1.6fr_1fr_auto] lg:items-end">
           <div className="space-y-2">
             <label htmlFor="approved-email" className="text-sm font-medium text-foreground">
               Email address
@@ -72,12 +79,12 @@ export function AccessManagementPanel({ approvedEmails, users }: AccessManagemen
             </select>
           </div>
 
-          <Button type="submit" className="md:self-end">
+          <Button type="submit" className="w-full lg:w-auto lg:self-end">
             Add email
           </Button>
         </form>
 
-        <div className="space-y-3">
+        <div className="max-h-[34rem] space-y-3 overflow-y-auto pr-1">
           {approvedEmails.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No approved emails yet. Add one now to start restricting Teams login.
@@ -115,15 +122,15 @@ export function AccessManagementPanel({ approvedEmails, users }: AccessManagemen
                         ))}
                       </select>
                     </div>
-                    <Button type="submit" variant="outline">
+                    <Button type="submit" variant="outline" className="w-full sm:w-auto">
                       Save role
                     </Button>
                   </form>
 
-                  <form action={toggleApprovedEmailStatusAction}>
+                  <form action={toggleApprovedEmailStatusAction} className="w-full md:w-auto">
                     <input type="hidden" name="id" value={entry.id} />
                     <input type="hidden" name="isActive" value={entry.isActive ? "false" : "true"} />
-                    <Button type="submit" variant={entry.isActive ? "destructive" : "secondary"}>
+                    <Button type="submit" variant={entry.isActive ? "destructive" : "secondary"} className="w-full md:w-auto">
                       {entry.isActive ? "Block login" : "Allow login"}
                     </Button>
                   </form>
@@ -134,7 +141,7 @@ export function AccessManagementPanel({ approvedEmails, users }: AccessManagemen
         </div>
       </section>
 
-      <section className="rounded-2xl border bg-white p-6 shadow-sm">
+      <section className="min-w-0 overflow-hidden rounded-2xl border bg-white p-6 shadow-sm">
         <div className="mb-5">
           <p className="eyebrow-label">Role management</p>
           <h2 className="text-xl font-semibold text-foreground">Current users</h2>
@@ -143,7 +150,7 @@ export function AccessManagementPanel({ approvedEmails, users }: AccessManagemen
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="max-h-[34rem] space-y-3 overflow-y-auto pr-1">
           {users.length === 0 ? (
             <p className="text-sm text-muted-foreground">No users available yet.</p>
           ) : (
@@ -181,7 +188,7 @@ export function AccessManagementPanel({ approvedEmails, users }: AccessManagemen
                       ))}
                     </select>
                   </div>
-                  <Button type="submit" variant="outline">
+                  <Button type="submit" variant="outline" className="w-full sm:w-auto">
                     Update user
                   </Button>
                 </div>
