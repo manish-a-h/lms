@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 type ProfileData = {
   name: string;
   email: string;
-  nitteEmail: string;
   contactNo: string;
   panNo: string;
   pfUan: string;
@@ -158,23 +157,6 @@ export function ProfileEditForm({ initialData }: ProfileEditFormProps) {
               aria-invalid={!!fieldErrors.email}
             />
             <FieldError field="email" />
-          </div>
-
-          <div>
-            <label
-              htmlFor="profile-nitte-email"
-              className="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-1.5"
-            >
-              NITTE Email
-            </label>
-            <Input
-              id="profile-nitte-email"
-              type="email"
-              value={form.nitteEmail}
-              onChange={(e) => handleChange("nitteEmail", e.target.value)}
-              aria-invalid={!!fieldErrors.nitteEmail}
-            />
-            <FieldError field="nitteEmail" />
           </div>
 
           <div>

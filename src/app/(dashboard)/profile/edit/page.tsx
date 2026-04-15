@@ -38,7 +38,6 @@ export default async function ProfileEditPage() {
   const initialData = {
     name: profile.name ?? "",
     email: profile.email ?? "",
-    nitteEmail: profile.nitteEmail ?? "",
     contactNo: profile.contactNo ?? "",
     panNo: profile.panNo ?? "",
     pfUan: profile.pfUan ?? "",

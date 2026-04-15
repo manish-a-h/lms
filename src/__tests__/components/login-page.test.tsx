@@ -1,9 +1,12 @@
 /** @jest-environment jsdom */
 
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, jest } from '@jest/globals'
+import { render, screen } from '@testing-library/react'
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import LoginPage from '@/app/(auth)/login/page'
+
+let callbackUrlValue: string | null = null
+let authErrorValue: string | null = null
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -11,7 +14,11 @@ jest.mock('next/navigation', () => ({
     refresh: jest.fn(),
   }),
   useSearchParams: () => ({
-    get: () => null,
+    get: (key: string) => {
+      if (key === 'callbackUrl') return callbackUrlValue
+      if (key === 'authError') return authErrorValue
+      return null
+    },
   }),
 }))
 
@@ -52,25 +59,42 @@ jest.mock('@/components/auth/auth-transition-link', () => ({
 }))
 
 describe('LoginPage', () => {
-  it('renders email, password, and sign in button', async () => {
-    render(<LoginPage />)
-
-    expect(await screen.findByLabelText(/email address/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/^password/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+  beforeEach(() => {
+    callbackUrlValue = null
+    authErrorValue = null
   })
 
-  it('toggles password visibility', async () => {
+  it('renders teams-only sign in UI', async () => {
     render(<LoginPage />)
 
-    const passwordInput = (await screen.findByLabelText(/^password/i)) as HTMLInputElement
-    const toggleButton = screen.getByRole('button', { name: /show password/i })
+    expect(await screen.findByRole('link', { name: /continue with microsoft teams/i })).toBeInTheDocument()
+    expect(screen.queryByLabelText(/email address/i)).toBeNull()
+    expect(screen.queryByLabelText(/^password/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /^sign in$/i })).toBeNull()
+  })
 
-    expect(passwordInput.type).toBe('password')
+  it('renders a teams sign-in link', async () => {
+    render(<LoginPage />)
 
-    fireEvent.click(toggleButton)
+    const teamsLink = await screen.findByRole('link', { name: /continue with microsoft teams/i })
+    expect(teamsLink).toBeInTheDocument()
+    expect(teamsLink).toHaveAttribute('href', '/api/auth/teams/start?callbackUrl=%2Fdashboard')
+  })
 
-    expect(passwordInput.type).toBe('text')
-    expect(screen.getByRole('button', { name: /hide password/i })).not.toBeNull()
+  it('sanitizes nested auth callback urls for teams sign-in', async () => {
+    callbackUrlValue = '/api/auth/callback?code=very-long-code&state=very-long-state'
+
+    render(<LoginPage />)
+
+    const teamsLink = await screen.findByRole('link', { name: /continue with microsoft teams/i })
+    expect(teamsLink).toHaveAttribute('href', '/api/auth/teams/start?callbackUrl=%2Fdashboard')
+  })
+
+  it('does not show password recovery or local account actions', async () => {
+    render(<LoginPage />)
+
+    expect(await screen.findByRole('link', { name: /continue with microsoft teams/i })).toBeInTheDocument()
+    expect(screen.queryByText(/forgot password/i)).toBeNull()
+    expect(screen.queryByText(/^sign up$/i)).toBeNull()
   })
 })

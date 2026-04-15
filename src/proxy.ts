@@ -12,12 +12,18 @@ const PUBLIC_PATHS = [
   "/api/auth/refresh",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
+  "/api/auth/callback",
+  "/api/auth/teams",
 ];
 
 function buildLoginRedirect(request: NextRequest) {
   const loginUrl = new URL("/login", request.url);
-  const callbackUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`;
-  loginUrl.searchParams.set("callbackUrl", callbackUrl || "/dashboard");
+  const rawCallbackUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const callbackUrl = rawCallbackUrl.startsWith("/api/auth/")
+    ? "/dashboard"
+    : rawCallbackUrl || "/dashboard";
+
+  loginUrl.searchParams.set("callbackUrl", callbackUrl);
   return NextResponse.redirect(loginUrl);
 }
 

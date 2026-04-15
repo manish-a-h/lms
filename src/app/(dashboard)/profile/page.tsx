@@ -166,11 +166,6 @@ export default async function ProfilePage() {
           <div className="divide-y divide-border/40">
             <InfoRow icon={Mail} label="Email Address" value={profile.email} />
             <InfoRow
-              icon={Mail}
-              label="NITTE Email"
-              value={profile.nitteEmail}
-            />
-            <InfoRow
               icon={Phone}
               label="Contact Number"
               value={profile.contactNo}

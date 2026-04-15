@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { Activity, CalendarDays, FileBarChart2, ShieldCheck, Users } from "lucide-react";
 import { verifyAccessToken } from "@/lib/auth";
 import { getAdminOverview } from "@/lib/data/admin";
-import { formatRoleLabel } from "@/lib/utils";
 import { HrCalendar } from "@/components/admin/hr-calendar";
+import { AccessManagementPanel } from "@/components/admin/access-management-panel";
 
 export default async function AdminPage() {
   const cookieStore = await cookies();
@@ -60,37 +60,14 @@ export default async function AdminPage() {
         <HrCalendar />
       </div>
 
+      <div className="mt-8">
+        <AccessManagementPanel
+          approvedEmails={overview.approvedEmails}
+          users={overview.users}
+        />
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr] mt-8">
-        <section className="atelier-panel p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-[#2E75B6]" />
-            <h2 className="text-lg font-semibold text-foreground">User management starter</h2>
-          </div>
-
-          {overview.users.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No users available yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {overview.users.map((user) => (
-                <div key={user.id} className="atelier-panel-muted flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-medium text-foreground">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.email} • {formatRoleLabel(user.role)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.department ?? "No department"} • {user.designation ?? "No designation"}
-                    </p>
-                  </div>
-                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${user.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
-                    {user.isActive ? "Active" : "Inactive"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
         <section className="space-y-6">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">

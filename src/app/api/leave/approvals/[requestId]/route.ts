@@ -66,22 +66,24 @@ export async function POST(
 
       if (parsed.data.action === "approved") {
         notifyLeaveApproved({
-            employeeId: employee.id,
-            leaveType: leaveType.name,
-            startDate,
-            endDate,
+          employeeId: employee.id,
+          employeeName: leaveRequest.user.name,
+          leaveType: leaveType.name,
+          startDate,
+          endDate,
         }).catch(err => console.error("Notify err:", err));
-    }
+      }
 
-    if (parsed.data.action === "rejected") {
+      if (parsed.data.action === "rejected") {
         notifyLeaveRejected({
-            employeeId: employee.id,
-            leaveType: leaveType.name,
-            startDate,
-            endDate,
-            reason: parsed.data.comment ?? undefined,
+          employeeId: employee.id,
+          employeeName: leaveRequest.user.name,
+          leaveType: leaveType.name,
+          startDate,
+          endDate,
+          reason: parsed.data.comment ?? undefined,
         }).catch(err => console.error("Notify err:", err));
-    }
+      }
     }
 
     return NextResponse.json({ ok: true, leaveRequest });

@@ -7,7 +7,6 @@ export async function getFullProfile(userId: string) {
     select: {
       id: true,
       email: true,
-      nitteEmail: true,
       name: true,
       role: true,
       avatarUrl: true,
@@ -32,7 +31,6 @@ export async function updateProfile(
   data: {
     name: string;
     email: string;
-    nitteEmail?: string;
     contactNo?: string;
     panNo?: string;
     pfUan?: string;
@@ -61,7 +59,7 @@ export async function updateProfile(
       data: {
         name: data.name.trim(),
         email: normalizedEmail,
-        nitteEmail: data.nitteEmail?.trim() || null,
+        nitteEmail: null,
         contactNo: data.contactNo?.trim() || null,
         panNo: data.panNo?.trim().toUpperCase() || null,
         pfUan: data.pfUan?.trim() || null,

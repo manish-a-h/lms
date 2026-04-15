@@ -77,7 +77,7 @@ export async function PATCH(
         // Send notification to the employee
         const employee = await db.user.findUnique({
             where: { id: targetRequest.userId },
-            select: { id: true },
+            select: { id: true, name: true },
         });
         const leaveType = await db.leaveType.findUnique({
             where: { id: targetRequest.leaveTypeId },
@@ -91,6 +91,7 @@ export async function PATCH(
             if (action === "approve") {
                 notifyLeaveApproved({
                     employeeId: employee.id,
+                    employeeName: employee.name,
                     leaveType: leaveType.name,
                     startDate,
                     endDate,
@@ -100,6 +101,7 @@ export async function PATCH(
             if (action === "reject") {
                 notifyLeaveRejected({
                     employeeId: employee.id,
+                    employeeName: employee.name,
                     leaveType: leaveType.name,
                     startDate,
                     endDate,

@@ -89,6 +89,17 @@ model User {
   notifications       Notification[]
 }
 
+model ApprovedEmail {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role     @default(employee)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, role])
+}
+
 // ─────────────────────────────────────────────
 // Leave Types
 // ─────────────────────────────────────────────

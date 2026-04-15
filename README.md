@@ -27,7 +27,7 @@ A full-stack Leave Management System built with Next.js 16, React 19, TypeScript
 | UI Primitives | shadcn/ui + Base UI |
 | ORM | Prisma 7 |
 | Database | PostgreSQL 16 |
-| Auth | JWT (jose) + Refresh Tokens |
+| Auth | JWT (jose) + Refresh Tokens + Microsoft Teams SSO |
 | Validation | Zod |
 | Email | Nodemailer (SMTP) |
 | Testing | Jest + React Testing Library |
@@ -56,6 +56,20 @@ copy .env.example .env
 
 Open `.env` and fill in your `DATABASE_URL`, `JWT_SECRET`, and optionally SMTP settings.
 
+### Microsoft Teams sign-in
+
+To enable Microsoft Teams authentication, register an app in Microsoft Entra ID and add this redirect URI:
+
+- http://localhost:3000/api/auth/teams/callback
+
+Then set these environment values:
+
+- APP_URL
+- TEAMS_CLIENT_ID
+- TEAMS_CLIENT_SECRET
+- TEAMS_TENANT_ID
+- Optional: TEAMS_ALLOWED_DOMAINS and TEAMS_AUTO_PROVISION
+
 ### 3. Set up the database
 
 ```bash
@@ -79,7 +93,7 @@ Default HR Admin credentials after seeding:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:8000](http://localhost:8000).
 
 ## Database Commands
 

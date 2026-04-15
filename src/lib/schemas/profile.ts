@@ -14,12 +14,6 @@ export const updateProfileSchema = z.object({
     .string()
     .trim()
     .email("Please enter a valid email address."),
-  nitteEmail: z
-    .string()
-    .trim()
-    .email("Please enter a valid NITTE email address.")
-    .optional()
-    .or(z.literal("")),
   contactNo: z
     .string()
     .trim()
