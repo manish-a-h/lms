@@ -73,14 +73,57 @@ export function isTeamsAuthConfigured() {
     return Boolean(process.env.TEAMS_CLIENT_ID?.trim() && process.env.TEAMS_CLIENT_SECRET?.trim());
 }
 
-export function getAppOrigin(request: Request) {
-    const configuredOrigin =
-        process.env.APP_URL?.trim() ||
-        process.env.NEXTAUTH_URL?.trim() ||
-        process.env.NEXT_PUBLIC_APP_URL?.trim();
+/** True when public URLs must not come from loopback env (e.g. localhost copied into Vercel). */
+function useProductionPublicUrlRules() {
+    return process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+}
 
-    if (configuredOrigin) {
-        return configuredOrigin.replace(/\/+$/, "");
+function trimTrailingSlashes(value: string) {
+    return value.replace(/\/+$/, "");
+}
+
+function isLoopbackHttpUrl(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return false;
+    }
+    try {
+        const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+        const host = new URL(withScheme).hostname.toLowerCase();
+        return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+    } catch {
+        return false;
+    }
+}
+
+function firstNonLoopbackOrigin(candidates: (string | undefined)[]) {
+    if (!useProductionPublicUrlRules()) {
+        for (const raw of candidates) {
+            const t = raw?.trim();
+            if (t) {
+                return trimTrailingSlashes(t);
+            }
+        }
+        return undefined;
+    }
+    for (const raw of candidates) {
+        const t = raw?.trim();
+        if (!t || isLoopbackHttpUrl(t)) {
+            continue;
+        }
+        return trimTrailingSlashes(t);
+    }
+    return undefined;
+}
+
+export function getAppOrigin(request: Request) {
+    const fromEnv = firstNonLoopbackOrigin([
+        process.env.APP_URL,
+        process.env.NEXTAUTH_URL,
+        process.env.NEXT_PUBLIC_APP_URL,
+    ]);
+    if (fromEnv) {
+        return fromEnv;
     }
 
     const vercelHost = process.env.VERCEL_URL?.trim();
@@ -94,9 +137,10 @@ export function getAppOrigin(request: Request) {
 
 export function getTeamsRedirectUri(request: Request) {
     const configuredRedirectUri = process.env.TEAMS_REDIRECT_URI?.trim();
-
     if (configuredRedirectUri) {
-        return configuredRedirectUri;
+        if (!useProductionPublicUrlRules() || !isLoopbackHttpUrl(configuredRedirectUri)) {
+            return configuredRedirectUri;
+        }
     }
 
     // Single entrypoint re-exported from `api/auth/teams/callback` — register this URI in Entra ID.

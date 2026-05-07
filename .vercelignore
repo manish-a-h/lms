@@ -1,0 +1,6 @@
+# CLI deploy must not upload local secrets (Next.js would read them as "Environments: .env").
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
