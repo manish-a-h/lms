@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, Briefcase } from "lucide-react";
@@ -83,7 +82,7 @@ function SignupPageContent() {
           ) : null}
 
           <div className="space-y-5">
-            <Link
+            <a
               href={teamsHref}
               className="flex h-11 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-[#004ac6]/30 hover:text-[#004ac6]"
             >
@@ -91,7 +90,7 @@ function SignupPageContent() {
                 T
               </span>
               Continue with Microsoft Teams
-            </Link>
+            </a>
           </div>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">

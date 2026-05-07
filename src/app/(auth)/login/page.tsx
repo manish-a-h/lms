@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Briefcase, AlertCircle } from "lucide-react";
@@ -83,7 +82,8 @@ function LoginPageContent() {
           )}
 
           <div className="space-y-5">
-            <Link
+            {/* Plain <a>: client-side <Link> can fetch /api/auth/teams/start and break OAuth (CORS to Microsoft, cookies). */}
+            <a
               href={teamsHref}
               className="flex h-11 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-[#004ac6]/30 hover:text-[#004ac6]"
             >
@@ -91,7 +91,7 @@ function LoginPageContent() {
                 T
               </span>
               Continue with Microsoft Teams
-            </Link>
+            </a>
 
             <p className="text-center text-xs text-muted-foreground">
               Use your organization&apos;s Microsoft 365 identity for secure access and automatic account provisioning.
