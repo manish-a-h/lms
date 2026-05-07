@@ -58,13 +58,14 @@ Open `.env` and fill in your `DATABASE_URL`, `JWT_SECRET`, and optionally SMTP s
 
 ### Microsoft Teams sign-in
 
-To enable Microsoft Teams authentication, register an app in Microsoft Entra ID and add this redirect URI:
+To enable Microsoft Teams authentication, register an app in Microsoft Entra ID and add redirect URIs for each environment (must match exactly), for example:
 
-- http://localhost:3000/api/auth/teams/callback
+- http://localhost:8000/api/auth/callback
+- `https://<your-vercel-domain>/api/auth/callback` (production; optional preview URLs if you use them)
 
 Then set these environment values:
 
-- APP_URL
+- `APP_URL` (recommended on Vercel: your canonical site URL, e.g. `https://your-app.vercel.app`)
 - TEAMS_CLIENT_ID
 - TEAMS_CLIENT_SECRET
 - TEAMS_TENANT_ID

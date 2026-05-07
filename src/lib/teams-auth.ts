@@ -83,6 +83,12 @@ export function getAppOrigin(request: Request) {
         return configuredOrigin.replace(/\/+$/, "");
     }
 
+    const vercelHost = process.env.VERCEL_URL?.trim();
+    if (vercelHost) {
+        const host = vercelHost.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+        return `https://${host}`;
+    }
+
     return new URL(request.url).origin;
 }
 
@@ -93,7 +99,8 @@ export function getTeamsRedirectUri(request: Request) {
         return configuredRedirectUri;
     }
 
-    return `${getAppOrigin(request)}/api/auth/teams/callback`;
+    // Single entrypoint re-exported from `api/auth/teams/callback` — register this URI in Entra ID.
+    return `${getAppOrigin(request)}/api/auth/callback`;
 }
 
 export function getSafeCallbackUrl(value: string | null | undefined) {
